@@ -18,17 +18,27 @@ mkdirSync(OUT, { recursive: true });
 
 const smooth = t => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 
+// 一块灰瓷砖：中性偏暖的灰底，纹路往深里压。
+// 和 app 日间模式同一套语言（深色形状落在浅色纸上），不是发亮的白。
+const BG   = [143, 143, 137];
+const MARK = [42, 42, 38];
+
 function render(size) {
   const W = size, H = size;
   const px = new Float32Array(W * H * 3);
 
-  // 底色：和 manifest 的 background_color 一致
-  for (let i = 0; i < W * H; i++) { px[i * 3] = 7; px[i * 3 + 1] = 7; px[i * 3 + 2] = 7; }
+  for (let i = 0; i < W * H; i++) {
+    px[i * 3] = BG[0]; px[i * 3 + 1] = BG[1]; px[i * 3 + 2] = BG[2];
+  }
 
-  const add = (x, y, v) => {
-    if (x < 0 || y < 0 || x >= W || y >= H || v <= 0) return;
+  // a = 覆盖度 0–1，把底色往 MARK 方向压，而不是加亮
+  const add = (x, y, a) => {
+    if (x < 0 || y < 0 || x >= W || y >= H || a <= 0) return;
+    if (a > 1) a = 1;
     const i = (Math.floor(y) * W + Math.floor(x)) * 3;
-    px[i] += v; px[i + 1] += v; px[i + 2] += v;
+    px[i]     += (MARK[0] - px[i])     * a;
+    px[i + 1] += (MARK[1] - px[i + 1]) * a;
+    px[i + 2] += (MARK[2] - px[i + 2]) * a;
   };
 
   // 四道水纹。上下两道暗一些，中间两道亮——像水面被光照到的一段。
@@ -54,7 +64,7 @@ function render(size) {
       const lo = Math.floor(yc - half - 1), hi = Math.ceil(yc + half + 1);
       for (let y = lo; y <= hi; y++) {
         const cov = Math.max(0, Math.min(1, half + 0.5 - Math.abs(y + 0.5 - yc)));
-        if (cov > 0) add(x, y, 255 * cov * ln.a * taper);
+        if (cov > 0) add(x, y, cov * ln.a * taper);
       }
     }
   }
@@ -65,10 +75,10 @@ function render(size) {
     for (let x = Math.floor(dx - dr * 3); x <= dx + dr * 3; x++) {
       const d = Math.hypot(x + 0.5 - dx, y + 0.5 - dy);
       if (d < dr) {
-        add(x, y, 255 * Math.min(1, (dr - d) * 1.6));       // 实心
+        add(x, y, Math.min(1, (dr - d) * 1.6));              // 实心
       } else {
         const g = Math.max(0, 1 - (d - dr) / (dr * 2));      // 一圈晕
-        if (g > 0) add(x, y, 255 * Math.pow(g, 2) * 0.30);
+        if (g > 0) add(x, y, Math.pow(g, 2) * 0.30);
       }
     }
   }
@@ -136,7 +146,8 @@ function png(raw, W, H) {
 
 /* ---------- 输出 ---------- */
 
-for (const [size, name] of [[512, "icon-512.png"], [192, "icon-192.png"], [180, "apple-touch-icon.png"]]) {
+// 1024 是给 macOS .icns 用的（Retina 下的 512@2x），网页本身用不到
+for (const [size, name] of [[1024, "icon-1024.png"], [512, "icon-512.png"], [192, "icon-192.png"], [180, "apple-touch-icon.png"]]) {
   const { raw, W, H } = render(size);
   writeFileSync(join(OUT, name), png(raw, W, H));
   console.log("wrote", name, size + "×" + size);
