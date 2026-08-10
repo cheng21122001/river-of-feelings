@@ -1,0 +1,703 @@
+<style>
+  :root{
+    --font-serif:"Noto Serif SC",Georgia,"Songti SC","STSong",serif;
+    --font-mono:ui-monospace,"SF Mono","SFMono-Regular",Menlo,"Cascadia Mono",monospace;
+    /* dark (default) */
+    --ink:#f2f2f0;--ink-soft:#a0a09e;--ink-faint:#5a5a58;
+    --line:rgba(255,255,255,.10);--card:rgba(255,255,255,.035);--card-b:rgba(255,255,255,.13);
+    --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);
+    --page:#070707;--scene-bg:#050505;--label:rgba(240,240,240,.68);--scene:dark;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --ink:#1b1b18;--ink-soft:#57574f;--ink-faint:#8f8f88;
+      --line:rgba(0,0,0,.12);--card:rgba(0,0,0,.028);--card-b:rgba(0,0,0,.14);
+      --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);
+      --page:#e7e7e1;--scene-bg:#d3d3cd;--label:rgba(25,25,22,.62);--scene:light;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#f2f2f0;--ink-soft:#a0a09e;--ink-faint:#5a5a58;
+    --line:rgba(255,255,255,.10);--card:rgba(255,255,255,.035);--card-b:rgba(255,255,255,.13);
+    --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);
+    --page:#070707;--scene-bg:#050505;--label:rgba(240,240,240,.68);--scene:dark;
+  }
+  :root[data-theme="light"]{
+    --ink:#1b1b18;--ink-soft:#57574f;--ink-faint:#8f8f88;
+    --line:rgba(0,0,0,.12);--card:rgba(0,0,0,.028);--card-b:rgba(0,0,0,.14);
+    --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);
+    --page:#e7e7e1;--scene-bg:#d3d3cd;--label:rgba(25,25,22,.62);--scene:light;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font-serif);background:var(--page);color:var(--ink);
+    min-height:100dvh;-webkit-font-smoothing:antialiased;line-height:1.75;
+    transition:background .4s ease,color .4s ease;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:3;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:52px 22px 100px}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+
+  header{margin-bottom:30px}
+  .topbar{display:flex;align-items:center;gap:16px;margin:0 0 16px}
+  .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--ink-faint);margin:0;flex:1;display:flex;align-items:center;gap:12px;min-width:0}
+  .eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+  .theme-toggle{display:inline-flex;flex:0 0 auto;border:1px solid var(--card-b);border-radius:20px;overflow:hidden}
+  .theme-toggle button{background:transparent;border:none;color:var(--ink-faint);font-family:var(--font-mono);
+    font-size:11px;letter-spacing:.06em;padding:5px 11px;cursor:pointer;transition:.15s}
+  .theme-toggle button+button{border-left:1px solid var(--line)}
+  .theme-toggle button:hover{color:var(--ink)}
+  .theme-toggle button.on{background:var(--hi);color:var(--ink)}
+  .theme-toggle button:active{transform:translateY(1px)}
+  .title{font-size:29px;font-weight:600;letter-spacing:.12em;margin:0 0 12px;color:var(--ink);text-indent:.12em;text-wrap:balance}
+  .subtitle{color:var(--ink-soft);font-size:14.5px;letter-spacing:.02em;margin:0;font-style:italic;max-width:46ch}
+
+  .scene{
+    position:relative;height:380px;border-radius:10px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:0 34px 80px -46px rgba(0,0,0,.7);
+    margin:30px 0 10px;background:var(--scene-bg);
+  }
+  #scene-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .river-label{
+    position:absolute;left:18px;bottom:16px;font-family:var(--font-mono);font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--label);z-index:2;
+    text-shadow:0 1px 6px rgba(0,0,0,.35);
+  }
+  .empty-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--label);font-size:14px;letter-spacing:.12em;z-index:2;text-align:center;padding:0 24px}
+
+  .ask{margin:30px 0;padding:26px;border-radius:8px;background:var(--card);border:1px solid var(--card-b)}
+  .ask h2{margin:0 0 6px;font-size:20px;font-weight:600;letter-spacing:.03em}
+  .ask .date{color:var(--ink-soft);font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;margin-bottom:20px}
+  .moods{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .mood{
+    flex:1;min-width:100px;cursor:pointer;padding:18px 10px 16px;border-radius:3px;text-align:center;
+    border:1px solid var(--card-b);background:transparent;color:var(--ink);transition:.18s;
+    font-size:14px;user-select:none;
+  }
+  .ind{display:flex;align-items:center;justify-content:center;height:16px;margin-bottom:12px}
+  .disc{width:11px;height:11px;border-radius:50%;background:var(--ink)}
+  .bar{width:17px;height:2px;border-radius:2px;background:var(--ink-soft)}
+  .ring{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--ink)}
+  .mood small{display:block;margin-top:6px;color:var(--ink-faint);font-size:11px;letter-spacing:.02em}
+  .mood:hover{border-color:var(--ink-soft);color:var(--ink)}
+  .mood.sel{background:var(--hi);border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+  textarea{
+    width:100%;min-height:66px;resize:vertical;border-radius:3px;padding:13px 15px;
+    background:var(--field-bg);border:1px solid var(--card-b);color:var(--ink);
+    font-family:var(--font-serif);font-size:14.5px;line-height:1.75;
+  }
+  textarea::placeholder{color:var(--ink-faint)}
+  .row{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+  button.primary{
+    background:var(--ink);color:var(--page);border:1px solid var(--ink);
+    padding:11px 26px;border-radius:3px;font-family:var(--font-serif);font-size:14px;font-weight:600;
+    cursor:pointer;letter-spacing:.12em;transition:.18s;
+  }
+  button.primary:hover{opacity:.86}
+  button.ghost{
+    background:transparent;color:var(--ink-soft);border:1px solid var(--card-b);
+    padding:11px 18px;border-radius:3px;font-family:var(--font-serif);font-size:13px;cursor:pointer;letter-spacing:.06em;transition:.18s;
+  }
+  button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
+
+  .ledger{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--card-b);border-radius:8px;margin:10px 0 4px;overflow:hidden}
+  .tally{padding:24px 12px 20px;text-align:center}
+  .tally+.tally{border-left:1px solid var(--line)}
+  .tally b{display:block;font-family:var(--font-mono);font-size:46px;font-weight:400;line-height:1;
+    letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .tally span{display:block;margin-top:12px;font-size:11px;color:var(--ink-soft);letter-spacing:.12em}
+  .river-line{text-align:center;color:var(--ink-soft);font-size:14.5px;margin:24px 0 4px;letter-spacing:.03em;line-height:1.9}
+  .river-line em{color:var(--ink);font-style:normal;font-family:var(--font-mono);font-size:15px;
+    border-bottom:1px solid var(--ink-faint);padding:0 2px 1px}
+
+  .section-h{display:flex;align-items:baseline;justify-content:space-between;margin:44px 0 6px;
+    border-bottom:1px solid var(--line);padding-bottom:12px}
+  .section-h h3{margin:0;font-size:14px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+  .section-h .count{color:var(--ink-soft);font-family:var(--font-mono);font-size:12px;letter-spacing:.06em}
+  .entry{display:flex;gap:18px;padding:18px 4px;border-bottom:1px solid var(--line)}
+  .entry .dot{width:9px;height:9px;border-radius:50%;margin-top:9px;flex:0 0 auto;border:1.5px solid var(--ink-soft)}
+  .dot.happy{background:var(--ink);border-color:var(--ink)}
+  .dot.calm{background:var(--ink-soft);border-color:var(--ink-soft)}
+  .dot.low{background:transparent;border-color:var(--ink)}
+  .entry .body{flex:1;min-width:0}
+  .entry .meta{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);letter-spacing:.04em;margin-bottom:4px;display:flex;gap:12px;align-items:center}
+  .entry .tag{font-family:var(--font-serif);font-size:11px;padding:1px 9px;border-radius:20px;border:1px solid var(--card-b);letter-spacing:.06em;color:var(--ink-soft)}
+  .entry .note{font-size:15px;color:var(--ink);white-space:pre-wrap;word-break:break-word;line-height:1.85}
+  .entry .acts{display:flex;gap:4px;align-self:flex-start;margin-top:4px}
+  .act{background:none;border:1px solid transparent;color:var(--ink-faint);cursor:pointer;font-family:var(--font-serif);font-size:12.5px;padding:3px 9px;border-radius:3px;letter-spacing:.04em;transition:.15s}
+  .act:hover{color:var(--ink);border-color:var(--card-b)}
+  .confirm{display:flex;gap:6px;align-items:center;align-self:flex-start;margin-top:4px;font-family:var(--font-serif);font-size:12.5px;color:var(--ink-soft)}
+  .confirm button{background:none;border:1px solid var(--card-b);cursor:pointer;font-family:var(--font-serif);font-size:12.5px;padding:3px 10px;border-radius:3px;transition:.15s}
+  .confirm .c-yes{color:var(--ink);border-color:var(--ink)}
+  .confirm .c-yes:hover{background:var(--ink);color:var(--page)}
+  .confirm .c-no{color:var(--ink-soft)}
+  .confirm .c-no:hover{color:var(--ink);border-color:var(--ink-soft)}
+  .entry.editing{background:var(--hi);border-radius:4px;padding:16px;border-bottom:1px solid var(--line)}
+  .edit-moods{display:flex;gap:8px;margin:8px 0 10px;flex-wrap:wrap}
+  .em{font-family:var(--font-serif);font-size:13px;padding:7px 13px;border-radius:3px;border:1px solid var(--card-b);background:transparent;color:var(--ink-soft);cursor:pointer;letter-spacing:.04em;transition:.15s}
+  .em:hover{color:var(--ink);border-color:var(--ink-soft)}
+  .em.sel{color:var(--ink);border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset;background:var(--hi)}
+  .edit-note{width:100%;min-height:56px;resize:vertical;border-radius:3px;padding:11px 13px;background:var(--field-bg);border:1px solid var(--card-b);color:var(--ink);font-family:var(--font-serif);font-size:14.5px;line-height:1.7}
+  .edit-actions{display:flex;gap:8px;margin-top:10px}
+  .mini-primary{background:var(--ink);color:var(--page);border:1px solid var(--ink);padding:7px 18px;border-radius:3px;font-family:var(--font-serif);font-size:13px;cursor:pointer;letter-spacing:.06em;transition:.15s}
+  .mini-primary:hover{opacity:.86}
+  .mini-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--card-b);padding:7px 14px;border-radius:3px;font-family:var(--font-serif);font-size:13px;cursor:pointer;transition:.15s}
+  .mini-ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
+  .toast-undo{background:none;border:1px solid rgba(255,255,255,.32);color:#fff;font-family:var(--font-serif);font-size:12.5px;padding:2px 11px;border-radius:20px;margin-left:12px;cursor:pointer}
+  .toast-undo:hover{background:rgba(255,255,255,.14)}
+  .empty{color:var(--ink-soft);text-align:center;padding:34px;font-size:14px;border:1px dashed var(--line);border-radius:4px;letter-spacing:.03em;margin-top:14px}
+
+  .share{margin-top:44px;padding-top:28px;border-top:1px solid var(--line)}
+  .share h3{margin:0 0 8px;font-size:14px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+  .share p{margin:0 0 18px;color:var(--ink-soft);font-size:14px;line-height:1.85;max-width:54ch}
+  .share .row{margin-top:0}
+  .hint{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);margin-top:14px;letter-spacing:.02em;line-height:1.6}
+  input.file{display:none}
+
+  .banner{
+    margin:0 0 22px;padding:14px 16px;border-radius:4px;font-size:13.5px;
+    background:var(--hi);border:1px solid var(--card-b);color:var(--ink);display:none;letter-spacing:.02em;line-height:1.7;
+  }
+  footer{text-align:center;color:var(--ink-faint);font-family:var(--font-mono);font-size:11px;margin-top:48px;letter-spacing:.14em}
+  .toast{
+    position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+    background:#1c1c1c;border:1px solid rgba(255,255,255,.14);color:#f2f2f0;padding:12px 24px;border-radius:30px;
+    font-size:13.5px;opacity:0;transition:.3s;pointer-events:none;z-index:50;box-shadow:0 12px 30px -12px #000;letter-spacing:.03em;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* press feedback */
+  button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
+  .mini-primary:active,.mini-ghost:active,.confirm button:active{transform:translateY(1px)}
+  /* softer container corners */
+  .banner,.empty,.entry.editing{border-radius:8px}
+  /* comfortable text wrapping */
+  .subtitle,.river-line,.share p,.entry .note,.empty,.empty-scene{text-wrap:pretty}
+  @media(max-width:520px){
+    .title{font-size:22px;letter-spacing:.06em}
+    .tally b{font-size:38px}
+  }
+</style>
+<script>(function(){try{var t=localStorage.getItem("river_theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+<main class="wrap">
+
+  <div class="banner" id="banner"></div>
+
+  <header>
+    <div class="topbar">
+      <p class="eyebrow">Diary · 日记</p>
+      <div class="theme-toggle" role="group" aria-label="日间或夜间">
+        <button type="button" data-theme-set="light">日</button>
+        <button type="button" data-theme-set="dark">夜</button>
+        <button type="button" data-theme-set="auto">自动</button>
+      </div>
+    </div>
+    <h1 class="title">第无数次踏入同一条河流</h1>
+    <p class="subtitle">把每一次快乐与低落留下来，会汇成一条河——夜里它发光，白日里它是地上一道湿的虹彩。</p>
+  </header>
+
+  <div class="scene" id="scene">
+    <canvas id="scene-canvas"></canvas>
+    <div class="river-label" id="riverLabel"></div>
+    <div class="empty-scene" id="emptyScene">还没有记录 · 河还没有流出来</div>
+  </div>
+
+  <div class="ask">
+    <div class="date" id="today"></div>
+    <div class="moods" id="moods">
+      <div class="mood" data-m="happy" role="button" tabindex="0"><span class="ind"><span class="disc"></span></span>快乐<small>黑暗里的一点光</small></div>
+      <div class="mood" data-m="calm" role="button" tabindex="0"><span class="ind"><span class="bar"></span></span>平静<small>一片微光的水</small></div>
+      <div class="mood" data-m="low" role="button" tabindex="0"><span class="ind"><span class="ring"></span></span>不妙<small>接一瓶河水，河长一寸</small></div>
+    </div>
+    <textarea id="note" placeholder="今天发生了什么？（可留空）"></textarea>
+    <div class="row">
+      <button class="primary" id="save">记下这一刻</button>
+      <button class="ghost" id="clearSel">取消</button>
+    </div>
+  </div>
+
+  <div class="ledger">
+    <div class="tally"><b id="sHappy">0</b><span>快乐 · 光点</span></div>
+    <div class="tally"><b id="sCalm">0</b><span>平静 · 水色</span></div>
+    <div class="tally"><b id="sLow">0</b><span>不妙 · 河水</span></div>
+  </div>
+  <div class="river-line" id="riverLine"></div>
+
+  <div class="section-h">
+    <h3>河水的样子</h3>
+    <span class="count" id="entryCount"></span>
+  </div>
+  <div id="entries"></div>
+
+  <div class="share">
+    <h3>与朋友共享这条河</h3>
+    <p>生成一个链接，把你此刻的河、你的光与河水，交给一个你信任的人。他们打开链接就能看见——也可以把它接进自己的河里。</p>
+    <div class="row">
+      <button class="primary" id="genLink">生成共享链接</button>
+      <button class="ghost" id="exportBtn">导出文件</button>
+      <button class="ghost" id="importBtn">导入文件</button>
+      <input type="file" class="file" id="fileInput" accept="application/json,.json">
+    </div>
+    <div class="hint">链接把数据编码在网址里，不经过任何服务器，只有拿到链接的人能看见。</div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  const KEY = "river_of_feelings_v1";
+  const $ = s => document.querySelector(s);
+  let entries = [];
+  let sel = null;
+  let sharedData = null;
+  const REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  function load(){ try{ entries = JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){ entries=[]; } }
+  function saveLS(){ try{ localStorage.setItem(KEY, JSON.stringify(entries)); }catch(e){} }
+
+  function encodeData(list){ return btoa(unescape(encodeURIComponent(JSON.stringify(list)))); }
+  function decodeData(str){ try{ return JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){ return null; } }
+  function checkIncomingShare(){
+    const h = location.hash;
+    if(h && h.indexOf("#share=")===0){
+      const data = decodeData(h.slice(7));
+      if(data && Array.isArray(data)) showBanner(data);
+    }
+  }
+  function showBanner(data){
+    sharedData = data;
+    const b = $("#banner");
+    b.innerHTML = '你正在看别人分享的河（共 '+data.length+' 条记录）。这不是你自己的记录。 &nbsp; '+
+      '<button class="ghost" id="mergeBtn" style="padding:5px 12px;margin-left:6px">接进我的河</button> '+
+      '<button class="ghost" id="dismissBtn" style="padding:5px 12px">只是看看</button>';
+    b.style.display = "block";
+    setViz(data); renderList(data, true); staticRedraw();
+    $("#mergeBtn").onclick = ()=>{
+      const map={}; entries.concat(data).forEach(e=>{ map[e.id||e.ts||Math.random()]=e; });
+      entries = Object.values(map).sort((a,b)=>b.ts-a.ts);
+      saveLS(); location.hash=""; b.style.display="none"; sharedData=null;
+      setViz(entries); renderList(entries,false); staticRedraw(); toast("已把这条河接进你的河里");
+    };
+    $("#dismissBtn").onclick = ()=>{ location.hash=""; b.style.display="none"; sharedData=null; setViz(entries); renderList(entries,false); staticRedraw(); };
+  }
+
+  const MOOD = { happy:{label:"快乐",cls:"happy"}, calm:{label:"平静",cls:"calm"}, low:{label:"不妙",cls:"low"} };
+  let editingId=null, confirmingId=null, editMood=null;
+  function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  /* ================= CANVAS SCENE (theme-aware oil-slick river) ================= */
+  const canvas = $("#scene-canvas");
+  const ctx = canvas.getContext("2d");
+  let W=0, H=0, dpr=1;
+  let grain=null;
+  let sceneTheme="dark";
+  let viz={count:0,happy:0,calm:0,low:0,sparkles:[],glows:[],bubbles:[]};
+
+  function readTheme(){
+    const v=getComputedStyle(document.documentElement).getPropertyValue("--scene").trim();
+    return v==="light" ? "light" : "dark";
+  }
+  function rng(seed){ let s=seed*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+
+  function sizeCanvas(){
+    const r = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio||1, 2);
+    W = r.width; H = r.height;
+    canvas.width = Math.round(W*dpr); canvas.height = Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    buildGrain();
+  }
+
+  function buildGrain(){
+    grain = document.createElement("canvas");
+    grain.width = Math.max(1,Math.round(W*dpr));
+    grain.height = Math.max(1,Math.round(H*dpr));
+    const g = grain.getContext("2d");
+    const light = sceneTheme==="light";
+    const img = g.createImageData(grain.width, grain.height);
+    const d = img.data;
+    for(let i=0;i<d.length;i+=4){
+      let v;
+      if(light){ v = 196 + Math.random()*18; if(Math.random()<0.02) v = 118 + Math.random()*50; }
+      else     { v = 7   + Math.random()*9;  if(Math.random()<0.015) v = 34 + Math.random()*60; }
+      d[i]=v; d[i+1]=v; d[i+2]=v; d[i+3]=255;
+    }
+    g.putImageData(img,0,0);
+    g.setTransform(dpr,0,0,dpr,0,0);
+    rockPatch(g, W*0.86, H*0.06, W*0.34);
+    rockPatch(g, W*0.92, H*0.92, W*0.3);
+    rockPatch(g, W*0.08, H*1.02, W*0.24);
+  }
+  function rockPatch(g, cx, cy, rad){
+    const light = sceneTheme==="light";
+    const grd = g.createRadialGradient(cx,cy,0,cx,cy,rad);
+    if(light){
+      grd.addColorStop(0,"rgba(96,94,90,0.42)");
+      grd.addColorStop(0.5,"rgba(120,118,112,0.22)");
+      grd.addColorStop(1,"rgba(120,118,112,0)");
+    }else{
+      grd.addColorStop(0,"rgba(150,150,150,0.4)");
+      grd.addColorStop(0.5,"rgba(96,96,96,0.22)");
+      grd.addColorStop(1,"rgba(96,96,96,0)");
+    }
+    g.fillStyle=grd; g.beginPath(); g.arc(cx,cy,rad,0,7); g.fill();
+    g.fillStyle = light ? "rgba(60,58,54,0.5)" : "rgba(210,210,210,0.5)";
+    const rnd=rng(Math.round(cx+cy));
+    for(let i=0;i<rad*1.6;i++){
+      const a=rnd()*6.28, rr=Math.sqrt(rnd())*rad;
+      const x=cx+Math.cos(a)*rr, y=cy+Math.sin(a)*rr;
+      if(rnd()<0.5) g.fillRect(x,y,1,1);
+    }
+  }
+
+  function centerX(p, t){
+    return W*0.46 + W*0.15*Math.sin(p*Math.PI*1.5+0.5) + W*0.04*Math.sin(p*7+t*0.4);
+  }
+
+  function setViz(list){
+    list = list || entries;
+    const happy=list.filter(e=>e.mood==="happy").length;
+    const calm =list.filter(e=>e.mood==="calm").length;
+    const low  =list.filter(e=>e.mood==="low").length;
+    const count=list.length;
+    const sp=[]; const rs=rng(happy*131+7);
+    for(let i=0;i<happy;i++){
+      const p=rs(), side=rs()<0.5?-1:1;
+      const y=H*(0.1+p*0.82);
+      const x=centerX(p,0) + side*(W*0.16 + rs()*W*0.28);
+      sp.push({x:Math.max(8,Math.min(W-8,x)), y, s:0.9+rs()*1.6, ph:rs()*6.28});
+    }
+    const gl=[]; const rc=rng(calm*277+3);
+    for(let i=0;i<calm;i++){
+      const p=rc(), side=rc()<0.5?-1:1;
+      const y=H*(0.12+p*0.78);
+      const x=centerX(p,0)+side*(W*0.1+rc()*W*0.26);
+      gl.push({x:Math.max(0,Math.min(W,x)), y, s:8+rc()*14, ph:rc()*6.28});
+    }
+    const bb=[]; const rb=rng(low*613+11);
+    for(let i=0;i<low;i++){
+      const p=0.12+(i/Math.max(1,low))*0.7 + rb()*0.05;
+      bb.push({p:Math.min(0.92,p), off:(rb()*2-1), s:1+rb()*2, ph:rb()*6.28});
+    }
+    viz={count,happy,calm,low,sparkles:sp,glows:gl,bubbles:bb};
+    $("#emptyScene").style.display = count? "none":"flex";
+    $("#riverLabel").textContent = count? ("River · "+count+" · "+low+" bottles"):"";
+  }
+
+  function drawRiver(t){
+    if(!viz.count) return;
+    const light = sceneTheme==="light";
+    const fill = Math.min(1, viz.count/22);
+    const yTop = H*0.10;
+    const yBot = yTop + (H*0.84)*Math.max(0.14, fill);
+    const maxW = Math.min(W*0.26, 22 + viz.low*2.4 + viz.count*0.6);
+    const step = 3;
+    ctx.globalCompositeOperation = light ? "source-over" : "lighter";
+    for(let y=yTop; y<=yBot; y+=step){
+      const p = (y-yTop)/(yBot-yTop);
+      const cx = centerX(p, t);
+      const wf = Math.pow(Math.sin(p*Math.PI), 0.7);
+      const w = maxW*wf * (0.85+0.15*Math.sin(y*0.08+t));
+      if(w<1) continue;
+      const bnd = 0.55 + 0.45*Math.sin(p*16 - t*2.2);
+      const grd = ctx.createLinearGradient(cx-w, y, cx+w, y);
+      if(light){
+        grd.addColorStop(0.00,"rgba(0,0,0,0)");
+        grd.addColorStop(0.12,"rgba(74,74,78,"+(0.12*bnd)+")");
+        grd.addColorStop(0.30,"rgba(56,56,61,"+(0.26*bnd)+")");
+        grd.addColorStop(0.44,"rgba(40,40,45,"+(0.46*bnd)+")");
+        grd.addColorStop(0.50,"rgba(26,26,31,"+(0.56*(0.6+0.4*bnd))+")");
+        grd.addColorStop(0.56,"rgba(40,40,45,"+(0.46*bnd)+")");
+        grd.addColorStop(0.72,"rgba(56,56,61,"+(0.26*bnd)+")");
+        grd.addColorStop(0.90,"rgba(74,74,78,"+(0.12*bnd)+")");
+        grd.addColorStop(1.00,"rgba(0,0,0,0)");
+      }else{
+        const g1=200,g2=235;
+        grd.addColorStop(0.00,"rgba(0,0,0,0)");
+        grd.addColorStop(0.12,"rgba("+g1+","+g1+","+g1+","+(0.30*bnd)+")");
+        grd.addColorStop(0.30,"rgba("+g2+","+g2+","+g2+","+(0.60*bnd)+")");
+        grd.addColorStop(0.44,"rgba(255,255,255,"+(0.9*bnd)+")");
+        grd.addColorStop(0.50,"rgba(255,255,255,"+(0.96*(0.6+0.4*bnd))+")");
+        grd.addColorStop(0.56,"rgba(255,255,255,"+(0.9*bnd)+")");
+        grd.addColorStop(0.72,"rgba("+g2+","+g2+","+g2+","+(0.55*bnd)+")");
+        grd.addColorStop(0.90,"rgba("+g1+","+g1+","+g1+","+(0.28*bnd)+")");
+        grd.addColorStop(1.00,"rgba(0,0,0,0)");
+      }
+      ctx.fillStyle = grd;
+      ctx.fillRect(cx-w, y, w*2, step+0.6);
+    }
+    // wet specular glint (light mode only): a thin bright ribbon down the middle
+    if(light){
+      ctx.globalCompositeOperation = "lighter";
+      for(let y=yTop; y<=yBot; y+=step){
+        const p=(y-yTop)/(yBot-yTop);
+        const cx=centerX(p,t);
+        const wf=Math.pow(Math.sin(p*Math.PI),0.7);
+        const w=maxW*wf; if(w<1) continue;
+        const bnd=0.55+0.45*Math.sin(p*16 - t*2.2);
+        const sw=Math.max(1,w*0.16);
+        const g2=ctx.createLinearGradient(cx-sw,y,cx+sw,y);
+        g2.addColorStop(0,"rgba(255,255,255,0)");
+        g2.addColorStop(0.5,"rgba(255,255,255,"+(0.22*bnd)+")");
+        g2.addColorStop(1,"rgba(255,255,255,0)");
+        ctx.fillStyle=g2; ctx.fillRect(cx-sw,y,sw*2,step+0.6);
+      }
+      ctx.globalCompositeOperation="source-over";
+    }
+    // foam / droplets
+    for(const b of viz.bubbles){
+      const y = yTop + (yBot-yTop)*Math.min(1,b.p);
+      const cx = centerX(b.p, t);
+      const wf = Math.pow(Math.sin(b.p*Math.PI),0.7);
+      const x = cx + b.off*maxW*wf*0.8;
+      const a = 0.5+0.5*Math.sin(t*1.6+b.ph);
+      ctx.fillStyle = light ? "rgba(20,20,24,"+(0.22+0.3*a)+")" : "rgba(255,255,255,"+(0.32+0.4*a)+")";
+      ctx.beginPath(); ctx.arc(x, y, b.s, 0, 7); ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  function drawGlows(t){
+    const light = sceneTheme==="light";
+    ctx.globalCompositeOperation = light ? "source-over" : "lighter";
+    for(const gm of viz.glows){
+      const a=0.3+0.3*Math.sin(t*0.9+gm.ph);
+      const grd=ctx.createRadialGradient(gm.x,gm.y,0,gm.x,gm.y,gm.s);
+      if(light){ grd.addColorStop(0,"rgba(70,70,74,"+(a*0.32)+")"); grd.addColorStop(1,"rgba(70,70,74,0)"); }
+      else     { grd.addColorStop(0,"rgba(210,210,210,"+(a*0.55)+")"); grd.addColorStop(1,"rgba(210,210,210,0)"); }
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(gm.x,gm.y,gm.s,0,7); ctx.fill();
+    }
+    ctx.globalCompositeOperation="source-over";
+  }
+
+  function drawSparkles(t){
+    const light = sceneTheme==="light";
+    ctx.globalCompositeOperation = light ? "source-over" : "lighter";
+    for(const s of viz.sparkles){
+      const a=0.5+0.5*Math.sin(t*1.8+s.ph);
+      const grd=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.s*4);
+      if(light){
+        grd.addColorStop(0,"rgba(34,34,38,"+(a*0.32)+")"); grd.addColorStop(1,"rgba(34,34,38,0)");
+        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(s.x,s.y,s.s*4,0,7); ctx.fill();
+        ctx.fillStyle="rgba(22,22,26,"+(0.55+0.35*a)+")";
+      }else{
+        grd.addColorStop(0,"rgba(255,255,255,"+(a*0.5)+")"); grd.addColorStop(1,"rgba(255,255,255,0)");
+        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(s.x,s.y,s.s*4,0,7); ctx.fill();
+        ctx.fillStyle="rgba(255,255,255,"+(0.6+0.4*a)+")";
+      }
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.s*0.9,0,7); ctx.fill();
+    }
+    ctx.globalCompositeOperation="source-over";
+  }
+
+  function drawVignette(){
+    const light = sceneTheme==="light";
+    const grd=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.85);
+    grd.addColorStop(0,"rgba(0,0,0,0)");
+    grd.addColorStop(1, light ? "rgba(90,90,90,0.16)" : "rgba(0,0,0,0.6)");
+    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+  }
+
+  function drawFrame(t){
+    if(!W) return;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = sceneTheme==="light" ? "#d3d3cd" : "#050505";
+    ctx.fillRect(0,0,W,H);
+    if(grain) ctx.drawImage(grain,0,0,W,H);
+    drawGlows(t); drawRiver(t); drawSparkles(t); drawVignette();
+  }
+  function loop(ts){ drawFrame((ts||0)/1000); requestAnimationFrame(loop); }
+  function staticRedraw(){ if(REDUCE) drawFrame(0.7); }
+
+  function updateTheme(){
+    const nt=readTheme();
+    if(nt!==sceneTheme){ sceneTheme=nt; buildGrain(); if(REDUCE) drawFrame(0.7); }
+  }
+
+  /* ================= entries + stats ================= */
+  function renderList(list, readonly){
+    list = list || entries;
+    const happy=list.filter(e=>e.mood==="happy").length;
+    const calm =list.filter(e=>e.mood==="calm").length;
+    const low  =list.filter(e=>e.mood==="low").length;
+    $("#sHappy").textContent=happy; $("#sCalm").textContent=calm; $("#sLow").textContent=low;
+
+    const rl=$("#riverLine");
+    if(low===0) rl.innerHTML="你还没有接过河水。愿你久久用不上这个小瓶子。";
+    else rl.innerHTML="你已经接了 <em>"+low+"</em> 瓶河水。"+riverPhrase(low);
+
+    const wrap=$("#entries");
+    const sorted=list.slice().sort((a,b)=>b.ts-a.ts);
+    $("#entryCount").textContent=list.length? (list.length+" 条"):"";
+    if(!sorted.length){ wrap.innerHTML='<div class="empty">这里还很安静。记下第一刻吧——今天过得怎么样，都值得。</div>'; return; }
+
+    wrap.innerHTML=sorted.map(e=>{
+      const m=MOOD[e.mood]||MOOD.calm;
+      if(!readonly && editingId===e.id){
+        const opt=(mm,lbl,ic)=>'<button class="em'+(editMood===mm?' sel':'')+'" data-m="'+mm+'">'+ic+' '+lbl+'</button>';
+        return '<div class="entry editing"><div class="dot '+(MOOD[editMood]||m).cls+'"></div><div class="body">'+
+          '<div class="meta">'+esc(e.date)+'</div>'+
+          '<div class="edit-moods">'+opt("happy","快乐","●")+opt("calm","平静","—")+opt("low","不妙","○")+'</div>'+
+          '<textarea class="edit-note" placeholder="今天发生了什么？（可留空）">'+esc(e.note||"")+'</textarea>'+
+          '<div class="edit-actions"><button class="mini-primary" data-act="save" data-id="'+e.id+'">保存</button>'+
+          '<button class="mini-ghost" data-act="cancel">取消</button></div>'+
+          '</div></div>';
+      }
+      const note=e.note? '<div class="note">'+esc(e.note)+'</div>':'<div class="note" style="color:var(--ink-soft)">（没有留下文字，只有这份心情。）</div>';
+      let actions='';
+      if(!readonly){
+        if(confirmingId===e.id)
+          actions='<div class="confirm">删掉这条？<button class="c-yes" data-id="'+e.id+'">删除</button><button class="c-no">取消</button></div>';
+        else
+          actions='<div class="acts"><button class="act act-edit" data-id="'+e.id+'">编辑</button><button class="act act-del" data-id="'+e.id+'">删除</button></div>';
+      }
+      return '<div class="entry"><div class="dot '+m.cls+'"></div><div class="body">'+
+        '<div class="meta">'+esc(e.date)+' <span class="tag">'+m.label+'</span></div>'+note+'</div>'+actions+'</div>';
+    }).join("");
+
+    if(readonly) return;
+
+    const emWrap=wrap.querySelector(".edit-moods");
+    if(emWrap) emWrap.querySelectorAll(".em").forEach(b=>{
+      b.onclick=()=>{ editMood=b.dataset.m; emWrap.querySelectorAll(".em").forEach(x=>x.classList.toggle("sel",x===b)); };
+    });
+    wrap.querySelectorAll('[data-act="save"]').forEach(b=>{
+      b.onclick=()=>{
+        const e=entries.find(x=>x.id==b.dataset.id); if(!e) return;
+        const ta=wrap.querySelector(".edit-note");
+        e.mood=editMood||e.mood; e.note=ta?ta.value.trim():e.note; e.editedTs=Date.now();
+        editingId=null; editMood=null; saveLS(); setViz(entries); renderList(entries,false); staticRedraw(); toast("已保存修改");
+      };
+    });
+    wrap.querySelectorAll('[data-act="cancel"]').forEach(b=>{ b.onclick=()=>{ editingId=null; editMood=null; renderList(entries,false); }; });
+    wrap.querySelectorAll(".act-edit").forEach(b=>{ b.onclick=()=>{ const e=entries.find(x=>x.id==b.dataset.id); editingId=b.dataset.id; editMood=e?e.mood:null; confirmingId=null; renderList(entries,false); }; });
+    wrap.querySelectorAll(".act-del").forEach(b=>{ b.onclick=()=>{ confirmingId=b.dataset.id; editingId=null; renderList(entries,false); }; });
+    wrap.querySelectorAll(".c-no").forEach(b=>{ b.onclick=()=>{ confirmingId=null; renderList(entries,false); }; });
+    wrap.querySelectorAll(".c-yes").forEach(b=>{
+      b.onclick=()=>{
+        const id=b.dataset.id, e=entries.find(x=>x.id==id);
+        entries=entries.filter(x=>x.id!=id);
+        confirmingId=null; saveLS(); setViz(entries); renderList(entries,false); staticRedraw();
+        if(e) toastUndo("已删除这条记录", ()=>{ entries.push(e); entries.sort((a,b)=>b.ts-a.ts); saveLS(); setViz(entries); renderList(entries,false); staticRedraw(); toast("已恢复"); });
+      };
+    });
+  }
+  function riverPhrase(n){
+    if(n<3) return "还只是瓶底的一点水光。";
+    if(n<7) return "小瓶已经沉了些，能听见晃动的声音。";
+    if(n<15) return "够注满一洼小小的水塘了。";
+    if(n<30) return "已经是一条细细的溪。你看，它在流，在发光。";
+    return "有一条河那么长、那么大了——赞叹它的体积吧，就像赞美一条普通的河。";
+  }
+
+  /* ================= interactions ================= */
+  function selectMood(el){ document.querySelectorAll(".mood").forEach(x=>x.classList.remove("sel")); el.classList.add("sel"); sel=el.dataset.m; }
+  function initAsk(){
+    const d=new Date();
+    const wd=["星期日","星期一","星期二","星期三","星期四","星期五","星期六"][d.getDay()];
+    $("#today").textContent=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" · "+wd;
+    document.querySelectorAll(".mood").forEach(el=>{
+      el.onclick=()=>selectMood(el);
+      el.onkeydown=ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); selectMood(el); } };
+    });
+    $("#clearSel").onclick=()=>{ document.querySelectorAll(".mood").forEach(x=>x.classList.remove("sel")); sel=null; $("#note").value=""; };
+    $("#save").onclick=()=>{
+      if(!sel){ toast("先选一个此刻的心情吧"); return; }
+      const dd=new Date();
+      const date=dd.getFullYear()+"-"+String(dd.getMonth()+1).padStart(2,"0")+"-"+String(dd.getDate()).padStart(2,"0");
+      entries.push({id:"e"+Date.now()+Math.floor(Math.random()*999),date,ts:Date.now(),mood:sel,note:$("#note").value.trim()});
+      saveLS();
+      $("#note").value=""; document.querySelectorAll(".mood").forEach(x=>x.classList.remove("sel")); sel=null;
+      setViz(entries); renderList(entries,false); staticRedraw(); toast("已记下这一刻");
+    };
+  }
+
+  function initShare(){
+    $("#genLink").onclick=()=>{
+      if(!entries.length){ toast("先记录一点什么，再分享吧"); return; }
+      copy(location.origin+location.pathname+"#share="+encodeData(entries));
+    };
+    $("#exportBtn").onclick=()=>{
+      const blob=new Blob([JSON.stringify(entries,null,2)],{type:"application/json"});
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+      a.download="第无数次踏入同一条河流-"+new Date().toISOString().slice(0,10)+".json"; a.click(); URL.revokeObjectURL(a.href);
+      toast("已导出");
+    };
+    $("#importBtn").onclick=()=>$("#fileInput").click();
+    $("#fileInput").onchange=ev=>{
+      const f=ev.target.files[0]; if(!f) return;
+      const rd=new FileReader();
+      rd.onload=()=>{ try{
+        const data=JSON.parse(rd.result); if(!Array.isArray(data)) throw 0;
+        const map={}; entries.concat(data).forEach(e=>{ map[e.id||e.ts||Math.random()]=e; });
+        entries=Object.values(map).sort((a,b)=>b.ts-a.ts);
+        saveLS(); setViz(entries); renderList(entries,false); staticRedraw(); toast("已导入并合并");
+      }catch(e){ toast("这个文件读不出来"); } };
+      rd.readAsText(f); ev.target.value="";
+    };
+  }
+
+  function copy(text){
+    if(navigator.clipboard&&navigator.clipboard.writeText)
+      navigator.clipboard.writeText(text).then(()=>toast("链接已复制，去交给那个人吧")).catch(()=>fallback(text));
+    else fallback(text);
+  }
+  function fallback(text){
+    const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast("链接已复制"); }catch(e){ prompt("复制这个链接：",text); } ta.remove();
+  }
+
+  let toastTimer;
+  function toast(msg){ const el=$("#toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("show"),2400); }
+  function toastUndo(msg,onUndo){
+    const el=$("#toast");
+    el.innerHTML=esc(msg)+' <button class="toast-undo">撤销</button>';
+    el.classList.add("show");
+    el.querySelector(".toast-undo").onclick=()=>{ el.classList.remove("show"); onUndo(); };
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("show"),6000);
+  }
+
+  /* ================= theme toggle ================= */
+  function currentPref(){ try{ const t=localStorage.getItem("river_theme"); return (t==="light"||t==="dark")?t:"auto"; }catch(e){ return "auto"; } }
+  function markToggle(pref){ document.querySelectorAll("[data-theme-set]").forEach(b=>b.classList.toggle("on", b.dataset.themeSet===pref)); }
+  function initThemeToggle(){
+    markToggle(currentPref());
+    document.querySelectorAll("[data-theme-set]").forEach(b=>{
+      b.onclick=()=>{
+        const v=b.dataset.themeSet;
+        try{
+          if(v==="auto"){ localStorage.removeItem("river_theme"); document.documentElement.removeAttribute("data-theme"); }
+          else { localStorage.setItem("river_theme",v); document.documentElement.setAttribute("data-theme",v); }
+        }catch(e){}
+        markToggle(v); updateTheme();
+      };
+    });
+  }
+
+  /* ================= boot ================= */
+  function boot(){
+    load(); sceneTheme=readTheme(); sizeCanvas(); initAsk(); initShare(); initThemeToggle();
+    setViz(entries); renderList(entries,false);
+    checkIncomingShare();
+    if(REDUCE) drawFrame(0.7); else requestAnimationFrame(loop);
+    if(window.matchMedia){
+      const mq=window.matchMedia("(prefers-color-scheme: dark)");
+      (mq.addEventListener? mq.addEventListener("change",updateTheme) : mq.addListener(updateTheme));
+    }
+    new MutationObserver(updateTheme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+    let rz; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(()=>{ sizeCanvas(); setViz(sharedData||entries); staticRedraw(); },180); });
+  }
+  boot();
+})();
+</script>
