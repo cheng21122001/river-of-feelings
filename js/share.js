@@ -1,20 +1,13 @@
-/* share.js — 分享链接、导出、导入。数据不经过任何服务器。 */
+/* share.js — 导出与导入备份文件。
+   「生成共享链接」的功能已经撤掉（有了云同步之后它只会让人困惑），
+   但读取链接的能力留着——以前发出去的链接还能打开。
+*/
 
 import { all, merge, markBackup } from "./store.js";
 import { toast } from "./ui.js";
 
-export function encodeData(list) {
-  return btoa(unescape(encodeURIComponent(JSON.stringify(list))));
-}
-
 export function decodeData(str) {
   try { return JSON.parse(decodeURIComponent(escape(atob(str)))); } catch (e) { return null; }
-}
-
-export function shareLink() {
-  const list = all();
-  if (!list.length) { toast("先记录一点什么，再分享吧"); return null; }
-  return location.origin + location.pathname + "#share=" + encodeData(list);
 }
 
 export function exportFile() {
@@ -47,24 +40,4 @@ export function importFile(file, onDone) {
   };
   rd.onerror = () => toast("这个文件读不出来");
   rd.readAsText(file);
-}
-
-export function copy(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => toast("链接已复制，去交给那个人吧"))
-      .catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
-  }
-}
-
-function fallbackCopy(text) {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand("copy"); toast("链接已复制"); }
-  catch (e) { prompt("复制这个链接：", text); }
-  ta.remove();
 }

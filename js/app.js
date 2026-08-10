@@ -6,7 +6,7 @@ import { createRiver } from "./river.js";
 import { createEntryList } from "./entries.js";
 import { renderYear } from "./calendar.js";
 import { yearLine, riverPhrase } from "./digest.js";
-import { shareLink, exportFile, importFile, copy, decodeData } from "./share.js";
+import { exportFile, importFile, decodeData } from "./share.js";
 import { $, esc, toast, openSheet, closeSheet, initSheet, prettyDate } from "./ui.js";
 import * as sync from "./sync.js";
 
@@ -256,10 +256,6 @@ function initMePage() {
     if (f) importFile(f, refresh);
     ev.target.value = "";
   };
-  $("#genLink").onclick = () => {
-    const link = shareLink();
-    if (link) copy(link);
-  };
 }
 
 function renderMe(list) {
@@ -286,8 +282,6 @@ function renderMe(list) {
   } else {
     note.hidden = true;
   }
-
-  $("#verHint").textContent = store.isFallback() ? "存储：备用模式" : "存储：本机数据库";
 }
 
 function tile(v, label) {
