@@ -1,8 +1,7 @@
-/* app.js — 把河、日历、记录串起来。 */
+/* app.js — 把日历和记录串起来。 */
 
 import * as store from "./store.js";
 import { MOOD } from "./store.js";
-import { createRiver } from "./river.js";
 import { createEntryList } from "./entries.js";
 import { renderYear } from "./calendar.js";
 import { yearLine } from "./digest.js";
@@ -11,7 +10,6 @@ import * as sync from "./sync.js";
 
 const RECENT_LIMIT = 8;
 
-let river = null;
 let recentList = null;
 let showAllRecent = false;
 let viewYear = new Date().getFullYear();
@@ -28,8 +26,6 @@ async function boot() {
   initTodayCard();
   initHistoryNav();
 
-  river = createRiver({ canvas: $("#scene-canvas") });
-
   recentList = createEntryList($("#entries"), {
     onChange: refresh,
     emptyText: "还没有记录。"
@@ -41,26 +37,10 @@ async function boot() {
     viewYear = new Date().getFullYear();
   }
 
-  river.start();
   refresh();
 
   routeFromHash();
   window.addEventListener("hashchange", routeFromHash);
-
-  // 主题跟随系统或手动切换时，河要重画
-  if (window.matchMedia) {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const h = () => river.updateTheme();
-    mq.addEventListener ? mq.addEventListener("change", h) : mq.addListener(h);
-  }
-  new MutationObserver(() => river.updateTheme())
-    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-
-  let rz;
-  window.addEventListener("resize", () => {
-    clearTimeout(rz);
-    rz = setTimeout(() => river.resize(), 180);
-  });
 
   if (info.migrated) toast("已把 " + info.migrated + " 条旧记录搬进来了");
   if (info.fallback) toast("这台设备的数据库用不了，已改用备用存储");
@@ -78,7 +58,6 @@ async function boot() {
 function refresh() {
   const list = store.all();
 
-  river.setData(list);
   renderLedger(list);
   renderRecent(list);
   renderHistory();

@@ -24,7 +24,6 @@ python3 -m http.server 5173
 index.html              外壳：河 / 历 / 我 三页 + 底部导航
 app.css
 js/store.js             IndexedDB、从旧版 localStorage 迁移
-js/river.js             canvas 河流动画
 js/calendar.js          年度网格（12 个月方阵）
 js/digest.js            月份名、「历」页顶部那行数字
 js/entries.js           记录卡片：编辑、删除、撤销
