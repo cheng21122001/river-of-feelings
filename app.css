@@ -6,27 +6,27 @@
   /* dark (default) */
   --ink:#f2f2f0;--ink-soft:#a0a09e;--ink-faint:#5a5a58;
   --line:rgba(255,255,255,.10);--card:rgba(255,255,255,.035);--card-b:rgba(255,255,255,.13);
-  --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);--cell:rgba(255,255,255,.055);
+  --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);--cell:rgba(255,255,255,.055);--cell-rgb:255,255,255;
   --page:#070707;
 }
 @media (prefers-color-scheme: light){
   :root{
     --ink:#1b1b18;--ink-soft:#57574f;--ink-faint:#8f8f88;
     --line:rgba(0,0,0,.12);--card:rgba(0,0,0,.028);--card-b:rgba(0,0,0,.14);
-    --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);--cell:rgba(0,0,0,.055);
+    --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);--cell:rgba(0,0,0,.055);--cell-rgb:0,0,0;
     --page:#e7e7e1;
   }
 }
 :root[data-theme="dark"]{
   --ink:#f2f2f0;--ink-soft:#a0a09e;--ink-faint:#5a5a58;
   --line:rgba(255,255,255,.10);--card:rgba(255,255,255,.035);--card-b:rgba(255,255,255,.13);
-  --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);--cell:rgba(255,255,255,.055);
+  --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);--cell:rgba(255,255,255,.055);--cell-rgb:255,255,255;
   --page:#070707;
 }
 :root[data-theme="light"]{
   --ink:#1b1b18;--ink-soft:#57574f;--ink-faint:#8f8f88;
   --line:rgba(0,0,0,.12);--card:rgba(0,0,0,.028);--card-b:rgba(0,0,0,.14);
-  --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);--cell:rgba(0,0,0,.055);
+  --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);--cell:rgba(0,0,0,.055);--cell-rgb:0,0,0;
   --page:#e7e7e1;
 }
 
@@ -143,9 +143,12 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 .year-mid b{display:block;font-family:var(--font-mono);font-size:26px;font-weight:400;letter-spacing:.06em}
 .year-mid span{display:block;margin-top:5px;font-size:11px;color:var(--ink-soft);font-family:var(--font-mono);letter-spacing:0;white-space:nowrap}
 
-.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:26px;
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;
   font-size:11.5px;color:var(--ink-faint);letter-spacing:.06em}
+.legend:last-of-type{margin-bottom:26px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
+.legend-freq{gap:10px}
+.legend-freq b{font-weight:400;margin-right:2px}
 .lg{width:13px;height:13px;border-radius:3px;background:var(--cell);display:inline-flex;align-items:center;justify-content:center;position:relative}
 .lg.happy::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink)}
 .lg.calm::after{content:"";width:8px;height:2px;border-radius:2px;background:var(--ink-soft)}
@@ -165,14 +168,19 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 .cell{aspect-ratio:1;border:none;padding:0;border-radius:3px;background:transparent;
   display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:.15s}
 .cell.pad,.cell.future{cursor:default;pointer-events:none}
-.cell.none,.cell.happy,.cell.calm,.cell.low{background:var(--cell)}
+/* 底色 = 那天记了几条；中间的标记仍然只表示心情。
+   五档共用一个基色，只有 alpha 在变，日夜两套主题各给一次基色即可。 */
+.lvl0{background:rgba(var(--cell-rgb),.028)}
+.lvl1{background:rgba(var(--cell-rgb),.055)}
+.lvl2{background:rgba(var(--cell-rgb),.105)}
+.lvl3{background:rgba(var(--cell-rgb),.175)}
+.lvl4{background:rgba(var(--cell-rgb),.26)}
 .cell:not(.pad):not(.future):hover{box-shadow:0 0 0 1px var(--ink-soft)}
 .cell.today{box-shadow:0 0 0 1.5px var(--ink)}
 .cell i{display:block}
 .cell.happy i{width:38%;height:38%;border-radius:50%;background:var(--ink)}
 .cell.calm i{width:50%;height:2px;border-radius:2px;background:var(--ink-soft)}
 .cell.low i{width:38%;height:38%;border-radius:50%;border:1.5px solid var(--ink);box-sizing:border-box}
-.cell u{position:absolute;right:1px;bottom:1px;width:2.5px;height:2.5px;border-radius:50%;background:var(--ink-faint)}
 
 /* ---------- 我 ---------- */
 .me-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);

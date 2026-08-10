@@ -42,6 +42,7 @@ function monthHTML(year, m, byDate, today, monthEntries) {
   const lead = (first.getDay() + 6) % 7;   // 周一起始
 
   const days = new Set(monthEntries.map(e => e.date)).size;
+  const total = monthEntries.length;
 
   const cells = [];
   for (let i = 0; i < lead; i++) cells.push('<span class="cell pad"></span>');
@@ -58,17 +59,18 @@ function monthHTML(year, m, byDate, today, monthEntries) {
 
     const dayEntries = byDate.get(date);
     const mood = dayMood(dayEntries);
-    const cls = ["cell", mood || "none"];
+    const n = dayEntries ? dayEntries.length : 0;
+
+    // 底色分五档：没记 / 1 / 2 / 3 / 4 条以上。中间的标记仍然只表示心情。
+    const cls = ["cell", mood || "none", "lvl" + Math.min(4, n)];
     if (date === today) cls.push("today");
 
-    const n = dayEntries ? dayEntries.length : 0;
     const aria = date + (mood ? "，" + ({ happy: "快乐", calm: "平静", low: "不妙" }[mood]) : "，没有记录") +
-                 (n > 1 ? "，" + n + " 条" : "");
+                 (n ? "，" + n + " 条" : "");
 
     cells.push(
       '<button class="' + cls.join(" ") + '" data-date="' + date + '" aria-label="' + esc(aria) + '">' +
-      '<i></i>' + (n > 1 ? '<u></u>' : "") +
-      "</button>"
+      "<i></i></button>"
     );
   }
 
@@ -79,7 +81,8 @@ function monthHTML(year, m, byDate, today, monthEntries) {
     "</div>" +
     '<div class="m-side">' +
       '<div class="m-head"><h4>' + MONTHS[m] + "</h4>" +
-      (days ? '<span class="m-count">' + days + " 天</span>" : "") + "</div>" +
+      // 天数和条数一起给，才看得出「记了几天」和「记得多密」的区别
+      (days ? '<span class="m-count">' + days + " 天 · " + total + " 条</span>" : "") + "</div>" +
     "</div>" +
     "</section>";
 }
