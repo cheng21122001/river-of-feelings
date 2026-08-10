@@ -10,7 +10,7 @@ import { esc, toast, toastUndo } from "./ui.js";
  * @param {object} opts
  * @param {Function} opts.onChange 数据变动后回调（重画河流、日历等）
  * @param {string}   opts.emptyText 没有记录时显示的话
- * @param {string}   opts.metaMode "date"（默认）显示日期；"time" 显示时刻，
+ * @param {string}   opts.metaMode "date"（默认）显示「日期 时刻」；"time" 只显示时刻，
  *                   用在某一天的抽屉里——标题已经是那天了，再重复日期是废话
  */
 export function createEntryList(container, { onChange, emptyText, metaMode } = {}) {
@@ -67,9 +67,14 @@ export function createEntryList(container, { onChange, emptyText, metaMode } = {
 
   /** 补记的记录没有真实时刻（ts 是那天中午的占位），就不假装有 */
   function metaLabel(e) {
-    if (metaMode !== "time") return e.date;
-    if (e.backfilled) return "";
-    const d = new Date(e.ts);
+    const time = e.backfilled ? "" : hhmm(e.ts);
+    // 抽屉的标题已经是那一天了，再重复日期是废话
+    if (metaMode === "time") return time;
+    return time ? e.date + " " + time : e.date;
+  }
+
+  function hhmm(ts) {
+    const d = new Date(ts);
     return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   }
 
