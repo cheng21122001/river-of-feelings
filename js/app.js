@@ -28,10 +28,7 @@ async function boot() {
   initTodayCard();
   initHistoryNav();
 
-  river = createRiver({
-    canvas: $("#scene-canvas"),
-    empty: $("#emptyScene")
-  });
+  river = createRiver({ canvas: $("#scene-canvas") });
 
   recentList = createEntryList($("#entries"), {
     onChange: refresh,
@@ -348,7 +345,7 @@ function switchTab(name) {
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   closeSheet();
   window.scrollTo(0, 0);
-  if (name === "today" && river) river.resize();
+  // 河流固定在视口上，切页不改变它的尺寸，不用重画
 }
 
 /* ================= 主题 ================= */

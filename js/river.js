@@ -1,13 +1,19 @@
-/* river.js — canvas 河流。逻辑原样自旧版搬来，只是收进一个模块里。
-   用法：const river = createRiver({canvas, empty}); river.setData(list);
+/* river.js — canvas 河流，铺满整个视口，作为透明背景压在内容底下。
+   用法：const river = createRiver({canvas}); river.setData(list);
+
+   既然是透明背景，就不能再铺底色、画颗粒、压暗角——那三样都会
+   糊掉整页。颗粒交给 body::after 那层噪点，这里只画河本身。
 */
 
 const REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-export function createRiver({ canvas, empty }) {
+/** 压在文字底下，整体要够淡才读得下去。
+    夜间用的是叠加混色（lighter），同样的值会比日间亮得多，所以分开给。 */
+const BG_ALPHA = { light: 0.45, dark: 0.22 };
+
+export function createRiver({ canvas }) {
   const ctx = canvas.getContext("2d");
   let W = 0, H = 0, dpr = 1;
-  let grain = null;
   let sceneTheme = "dark";
   let viz = { count: 0, happy: 0, calm: 0, low: 0, sparkles: [], glows: [], bubbles: [] };
   let lastList = [];
@@ -26,51 +32,6 @@ export function createRiver({ canvas, empty }) {
     if (!W || !H) return;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    buildGrain();
-  }
-
-  function buildGrain() {
-    if (!W || !H) return;
-    grain = document.createElement("canvas");
-    grain.width = Math.max(1, Math.round(W * dpr));
-    grain.height = Math.max(1, Math.round(H * dpr));
-    const g = grain.getContext("2d");
-    const light = sceneTheme === "light";
-    const img = g.createImageData(grain.width, grain.height);
-    const d = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      let v;
-      if (light) { v = 196 + Math.random() * 18; if (Math.random() < 0.02) v = 118 + Math.random() * 50; }
-      else { v = 7 + Math.random() * 9; if (Math.random() < 0.015) v = 34 + Math.random() * 60; }
-      d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255;
-    }
-    g.putImageData(img, 0, 0);
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    rockPatch(g, W * 0.86, H * 0.06, W * 0.34);
-    rockPatch(g, W * 0.92, H * 0.92, W * 0.3);
-    rockPatch(g, W * 0.08, H * 1.02, W * 0.24);
-  }
-
-  function rockPatch(g, cx, cy, rad) {
-    const light = sceneTheme === "light";
-    const grd = g.createRadialGradient(cx, cy, 0, cx, cy, rad);
-    if (light) {
-      grd.addColorStop(0, "rgba(96,94,90,0.42)");
-      grd.addColorStop(0.5, "rgba(120,118,112,0.22)");
-      grd.addColorStop(1, "rgba(120,118,112,0)");
-    } else {
-      grd.addColorStop(0, "rgba(150,150,150,0.4)");
-      grd.addColorStop(0.5, "rgba(96,96,96,0.22)");
-      grd.addColorStop(1, "rgba(96,96,96,0)");
-    }
-    g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, rad, 0, 7); g.fill();
-    g.fillStyle = light ? "rgba(60,58,54,0.5)" : "rgba(210,210,210,0.5)";
-    const rnd = rng(Math.round(cx + cy));
-    for (let i = 0; i < rad * 1.6; i++) {
-      const a = rnd() * 6.28, rr = Math.sqrt(rnd()) * rad;
-      const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
-      if (rnd() < 0.5) g.fillRect(x, y, 1, 1);
-    }
   }
 
   function centerX(p, t) {
@@ -105,17 +66,18 @@ export function createRiver({ canvas, empty }) {
       bb.push({ p: Math.min(0.92, p), off: (rb() * 2 - 1), s: 1 + rb() * 2, ph: rb() * 6.28 });
     }
     viz = { count, happy, calm, low, sparkles: sp, glows: gl, bubbles: bb };
-    if (empty) empty.style.display = count ? "none" : "flex";
     if (REDUCE) drawFrame(0.7);
   }
 
   function drawRiver(t) {
     if (!viz.count) return;
     const light = sceneTheme === "light";
-    const fill = Math.min(1, viz.count / 22);
-    const yTop = H * 0.10;
-    const yBot = yTop + (H * 0.84) * Math.max(0.14, fill);
-    const maxW = Math.min(W * 0.26, 22 + viz.low * 2.4 + viz.count * 0.6);
+    // 当背景之后，河一律贯穿整屏——流到一半断掉像是画坏了。
+    // 「记了多少」改由宽度承担，尺寸一律按视口比例算，
+    // 否则在大屏上还是当年那个 380px 盒子里的一根线。
+    const yTop = H * 0.06;
+    const yBot = H * 0.98;
+    const maxW = Math.min(W * 0.30, W * 0.05 + viz.low * W * 0.006 + viz.count * W * 0.002);
     const step = 3;
     ctx.globalCompositeOperation = light ? "source-over" : "lighter";
     for (let y = yTop; y <= yBot; y += step) {
@@ -215,28 +177,19 @@ export function createRiver({ canvas, empty }) {
     ctx.globalCompositeOperation = "source-over";
   }
 
-  function drawVignette() {
-    const light = sceneTheme === "light";
-    const grd = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85);
-    grd.addColorStop(0, "rgba(0,0,0,0)");
-    grd.addColorStop(1, light ? "rgba(90,90,90,0.16)" : "rgba(0,0,0,0.6)");
-    ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H);
-  }
-
   function drawFrame(t) {
     if (!W) return;
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = sceneTheme === "light" ? "#d3d3cd" : "#050505";
-    ctx.fillRect(0, 0, W, H);
-    if (grain) ctx.drawImage(grain, 0, 0, W, H);
-    drawGlows(t); drawRiver(t); drawSparkles(t); drawVignette();
+    ctx.globalAlpha = sceneTheme === "light" ? BG_ALPHA.light : BG_ALPHA.dark;
+    drawGlows(t); drawRiver(t); drawSparkles(t);
+    ctx.globalAlpha = 1;
   }
 
   function loop(ts) { drawFrame((ts || 0) / 1000); requestAnimationFrame(loop); }
 
   function updateTheme() {
     const nt = readTheme();
-    if (nt !== sceneTheme) { sceneTheme = nt; buildGrain(); if (REDUCE) drawFrame(0.7); }
+    if (nt !== sceneTheme) { sceneTheme = nt; if (REDUCE) drawFrame(0.7); }
   }
 
   function resize() {

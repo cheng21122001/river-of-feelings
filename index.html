@@ -24,17 +24,15 @@
 </head>
 <body>
 
+<!-- 河流：铺满视口的透明背景，压在所有内容底下 -->
+<canvas id="scene-canvas" aria-hidden="true"></canvas>
+
 <!-- ========== 河 ========== -->
 <main class="page" id="page-today">
   <div class="wrap">
     <header>
       <h1 class="title">第无数次踏入同一条河流</h1>
     </header>
-
-    <div class="scene" id="scene">
-      <canvas id="scene-canvas"></canvas>
-      <div class="empty-scene" id="emptyScene">还没有记录</div>
-    </div>
 
     <div class="ask">
       <div class="date" id="today"></div>

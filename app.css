@@ -7,27 +7,27 @@
   --ink:#f2f2f0;--ink-soft:#a0a09e;--ink-faint:#5a5a58;
   --line:rgba(255,255,255,.10);--card:rgba(255,255,255,.035);--card-b:rgba(255,255,255,.13);
   --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);--cell:rgba(255,255,255,.055);
-  --page:#070707;--scene-bg:#050505;--label:rgba(240,240,240,.68);--scene:dark;
+  --page:#070707;--scene:dark;
 }
 @media (prefers-color-scheme: light){
   :root{
     --ink:#1b1b18;--ink-soft:#57574f;--ink-faint:#8f8f88;
     --line:rgba(0,0,0,.12);--card:rgba(0,0,0,.028);--card-b:rgba(0,0,0,.14);
     --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);--cell:rgba(0,0,0,.055);
-    --page:#e7e7e1;--scene-bg:#d3d3cd;--label:rgba(25,25,22,.62);--scene:light;
+    --page:#e7e7e1;--scene:light;
   }
 }
 :root[data-theme="dark"]{
   --ink:#f2f2f0;--ink-soft:#a0a09e;--ink-faint:#5a5a58;
   --line:rgba(255,255,255,.10);--card:rgba(255,255,255,.035);--card-b:rgba(255,255,255,.13);
   --hi:rgba(255,255,255,.08);--field-bg:rgba(0,0,0,.40);--cell:rgba(255,255,255,.055);
-  --page:#070707;--scene-bg:#050505;--label:rgba(240,240,240,.68);--scene:dark;
+  --page:#070707;--scene:dark;
 }
 :root[data-theme="light"]{
   --ink:#1b1b18;--ink-soft:#57574f;--ink-faint:#8f8f88;
   --line:rgba(0,0,0,.12);--card:rgba(0,0,0,.028);--card-b:rgba(0,0,0,.14);
   --hi:rgba(0,0,0,.05);--field-bg:rgba(255,255,255,.60);--cell:rgba(0,0,0,.055);
-  --page:#e7e7e1;--scene-bg:#d3d3cd;--label:rgba(25,25,22,.62);--scene:light;
+  --page:#e7e7e1;--scene:light;
 }
 
 *{box-sizing:border-box}
@@ -51,14 +51,8 @@ header{margin-bottom:30px}
 .title{font-size:29px;font-weight:600;letter-spacing:.12em;margin:0;color:var(--ink);text-indent:.12em;text-wrap:balance}
 
 /* ---------- 河 ---------- */
-.scene{
-  position:relative;height:380px;border-radius:10px;overflow:hidden;
-  border:1px solid var(--line);box-shadow:0 34px 80px -46px rgba(0,0,0,.7);
-  margin:30px 0 10px;background:var(--scene-bg);
-}
-#scene-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.empty-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  color:var(--label);font-size:14px;letter-spacing:.12em;z-index:2;text-align:center;padding:0 24px}
+/* 铺满视口、固定不动，内容在它上面滚 */
+#scene-canvas{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
 
 .ask{margin:30px 0;padding:26px;border-radius:8px;background:var(--card);border:1px solid var(--card-b)}
 .ask .date{color:var(--ink-soft);font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;margin-bottom:20px}
@@ -261,12 +255,11 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 /* press feedback */
 button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .mini-primary:active,.mini-ghost:active,.confirm button:active{transform:translateY(1px)}
-.me-p,.entry .note,.empty,.empty-scene{text-wrap:pretty}
+.me-p,.entry .note,.empty{text-wrap:pretty}
 
 @media(max-width:520px){
   .title{font-size:22px;letter-spacing:.06em}
   .tally b{font-size:38px}
-  .scene{height:300px}
   #yearGrid{grid-template-columns:1fr;gap:22px}
   .month{grid-template-columns:132px 1fr;gap:13px}
   .wrap{padding-left:18px;padding-right:18px}
