@@ -3,7 +3,7 @@
    改了任何静态文件，就把 VERSION 加一。
 */
 
-const VERSION = "river-v4";
+const VERSION = "river-v6";
 
 const ASSETS = [
   "./",
@@ -16,7 +16,6 @@ const ASSETS = [
   "js/entries.js",
   "js/calendar.js",
   "js/digest.js",
-  "js/share.js",
   "js/ui.js",
   "js/config.js",
   "js/cloud.js",

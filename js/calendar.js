@@ -1,9 +1,9 @@
-/* calendar.js — 一年的样子：12 个月方阵，每个方阵下面跟着那个月的小结。
+/* calendar.js — 一年的样子：12 个月方阵。
    格子的心情 = 当天出现次数最多的那种（打平取最晚一条），规则在 store.dayMood。
 */
 
 import { dayMood, todayStr } from "./store.js";
-import { monthDigest, MONTHS } from "./digest.js";
+import { MONTHS } from "./digest.js";
 import { esc } from "./ui.js";
 
 const WD = ["一", "二", "三", "四", "五", "六", "日"];
@@ -72,8 +72,6 @@ function monthHTML(year, m, byDate, today, monthEntries) {
     );
   }
 
-  const digest = monthDigest(monthEntries, m);
-
   return '<section class="month">' +
     '<div class="m-cal">' +
       '<div class="m-wd">' + WD.map(w => "<span>" + w + "</span>").join("") + "</div>" +
@@ -82,7 +80,6 @@ function monthHTML(year, m, byDate, today, monthEntries) {
     '<div class="m-side">' +
       '<div class="m-head"><h4>' + MONTHS[m] + "</h4>" +
       (days ? '<span class="m-count">' + days + " 天</span>" : "") + "</div>" +
-      (digest ? '<p class="m-digest">' + esc(digest) + "</p>" : "") +
     "</div>" +
     "</section>";
 }

@@ -23,7 +23,7 @@ export function createEntryList(container, { onChange, emptyText, metaMode } = {
     const sorted = current.slice().sort((a, b) => b.ts - a.ts);
 
     if (!sorted.length) {
-      container.innerHTML = '<div class="empty">' + esc(emptyText || "这里还很安静。") + "</div>";
+      container.innerHTML = '<div class="empty">' + esc(emptyText || "还没有记录。") + "</div>";
       return;
     }
 
@@ -40,15 +40,13 @@ export function createEntryList(container, { onChange, emptyText, metaMode } = {
       return '<div class="entry editing"><div class="dot ' + (MOOD[editMood] || m).cls + '"></div><div class="body">' +
         '<div class="meta">' + esc(e.date) + "</div>" +
         '<div class="edit-moods">' + opt("happy", "快乐", "●") + opt("calm", "平静", "—") + opt("low", "不妙", "○") + "</div>" +
-        '<textarea class="edit-note" placeholder="今天发生了什么？（可留空）">' + esc(e.note || "") + "</textarea>" +
+        '<textarea class="edit-note" placeholder="（可留空）">' + esc(e.note || "") + "</textarea>" +
         '<div class="edit-actions"><button class="mini-primary" data-act="save" data-id="' + e.id + '">保存</button>' +
         '<button class="mini-ghost" data-act="cancel">取消</button></div>' +
         "</div></div>";
     }
 
-    const note = e.note
-      ? '<div class="note">' + esc(e.note) + "</div>"
-      : '<div class="note note-empty">（没有留下文字，只有这份心情。）</div>';
+    const note = e.note ? '<div class="note">' + esc(e.note) + "</div>" : "";
 
     const mark = e.backfilled ? '<span class="tag tag-back">补记</span>' : "";
 

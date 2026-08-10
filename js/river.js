@@ -1,10 +1,10 @@
 /* river.js — canvas 河流。逻辑原样自旧版搬来，只是收进一个模块里。
-   用法：const river = createRiver({canvas, label, empty}); river.setData(list);
+   用法：const river = createRiver({canvas, empty}); river.setData(list);
 */
 
 const REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-export function createRiver({ canvas, label, empty }) {
+export function createRiver({ canvas, empty }) {
   const ctx = canvas.getContext("2d");
   let W = 0, H = 0, dpr = 1;
   let grain = null;
@@ -106,7 +106,6 @@ export function createRiver({ canvas, label, empty }) {
     }
     viz = { count, happy, calm, low, sparkles: sp, glows: gl, bubbles: bb };
     if (empty) empty.style.display = count ? "none" : "flex";
-    if (label) label.textContent = count ? ("River · " + count + " · " + low + " bottles") : "";
     if (REDUCE) drawFrame(0.7);
   }
 

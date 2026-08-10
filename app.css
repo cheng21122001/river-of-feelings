@@ -48,11 +48,7 @@ body::after{
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
 
 header{margin-bottom:30px}
-.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
-  color:var(--ink-faint);margin:0 0 16px;display:flex;align-items:center;gap:12px;min-width:0}
-.eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
-.title{font-size:29px;font-weight:600;letter-spacing:.12em;margin:0 0 12px;color:var(--ink);text-indent:.12em;text-wrap:balance}
-.subtitle{color:var(--ink-soft);font-size:14.5px;letter-spacing:.02em;margin:0;font-style:italic;max-width:46ch}
+.title{font-size:29px;font-weight:600;letter-spacing:.12em;margin:0;color:var(--ink);text-indent:.12em;text-wrap:balance}
 
 /* ---------- 河 ---------- */
 .scene{
@@ -61,11 +57,6 @@ header{margin-bottom:30px}
   margin:30px 0 10px;background:var(--scene-bg);
 }
 #scene-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.river-label{
-  position:absolute;left:18px;bottom:16px;font-family:var(--font-mono);font-size:11px;
-  letter-spacing:.16em;text-transform:uppercase;color:var(--label);z-index:2;
-  text-shadow:0 1px 6px rgba(0,0,0,.35);
-}
 .empty-scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:var(--label);font-size:14px;letter-spacing:.12em;z-index:2;text-align:center;padding:0 24px}
 
@@ -81,7 +72,6 @@ header{margin-bottom:30px}
 .disc{width:11px;height:11px;border-radius:50%;background:var(--ink)}
 .bar{width:17px;height:2px;border-radius:2px;background:var(--ink-soft)}
 .ring{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--ink)}
-.mood small{display:block;margin-top:6px;color:var(--ink-faint);font-size:11px;letter-spacing:.02em}
 .mood:hover{border-color:var(--ink-soft);color:var(--ink)}
 .mood.sel{background:var(--hi);border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
 textarea{
@@ -109,9 +99,6 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 .tally b{display:block;font-family:var(--font-mono);font-size:46px;font-weight:400;line-height:1;
   letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .tally span{display:block;margin-top:12px;font-size:11px;color:var(--ink-soft);letter-spacing:.12em}
-.river-line{text-align:center;color:var(--ink-soft);font-size:14.5px;margin:24px 0 4px;letter-spacing:.03em;line-height:1.9}
-.river-line em{color:var(--ink);font-style:normal;font-family:var(--font-mono);font-size:15px;
-  border-bottom:1px solid var(--ink-faint);padding:0 2px 1px}
 
 .section-h{display:flex;align-items:baseline;justify-content:space-between;margin:44px 0 6px;
   border-bottom:1px solid var(--line);padding-bottom:12px}
@@ -129,7 +116,6 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 .entry .tag{font-family:var(--font-serif);font-size:11px;padding:1px 9px;border-radius:20px;border:1px solid var(--card-b);letter-spacing:.06em;color:var(--ink-soft)}
 .entry .tag-back{border-style:dashed;color:var(--ink-faint)}
 .entry .note{font-size:15px;color:var(--ink);white-space:pre-wrap;word-break:break-word;line-height:1.85}
-.entry .note-empty{color:var(--ink-soft)}
 .entry .acts{display:flex;gap:4px;align-self:flex-start;margin-top:4px}
 .act{background:none;border:1px solid transparent;color:var(--ink-faint);cursor:pointer;font-family:var(--font-serif);font-size:12.5px;padding:3px 9px;border-radius:3px;letter-spacing:.04em;transition:.15s}
 .act:hover{color:var(--ink);border-color:var(--card-b)}
@@ -196,7 +182,6 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 .cell.calm i{width:50%;height:2px;border-radius:2px;background:var(--ink-soft)}
 .cell.low i{width:38%;height:38%;border-radius:50%;border:1.5px solid var(--ink);box-sizing:border-box}
 .cell u{position:absolute;right:1px;bottom:1px;width:2.5px;height:2.5px;border-radius:50%;background:var(--ink-faint)}
-.m-digest{margin:0;font-size:12.5px;line-height:1.8;color:var(--ink-soft);text-wrap:pretty}
 
 /* ---------- 我 ---------- */
 .me-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);
@@ -206,15 +191,12 @@ button.ghost:hover{color:var(--ink);border-color:var(--ink-soft)}
 .me-stats span{display:block;margin-top:9px;font-size:11px;color:var(--ink-soft);letter-spacing:.1em}
 .me-p{color:var(--ink-soft);font-size:14px;line-height:1.85;max-width:54ch;margin:16px 0 0;text-wrap:pretty}
 .hint{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);margin-top:14px;letter-spacing:.02em;line-height:1.6;display:block}
-input.file{display:none}
 .theme-toggle{display:inline-flex;border:1px solid var(--card-b);border-radius:20px;overflow:hidden;margin-top:16px}
 .theme-toggle button{background:transparent;border:none;color:var(--ink-faint);font-family:var(--font-mono);
   font-size:12px;letter-spacing:.06em;padding:8px 16px;cursor:pointer;transition:.15s}
 .theme-toggle button+button{border-left:1px solid var(--line)}
 .theme-toggle button:hover{color:var(--ink)}
 .theme-toggle button.on{background:var(--hi);color:var(--ink)}
-.backup-note{margin-top:18px;padding:14px 16px;border-radius:8px;background:var(--hi);
-  border:1px solid var(--card-b);font-size:13.5px;line-height:1.7;color:var(--ink)}
 
 /* ---------- 登录 ---------- */
 .auth{margin-top:18px;display:flex;flex-direction:column;gap:10px;max-width:360px}
@@ -272,7 +254,6 @@ input.file{display:none}
 .sheet-body .entry:last-child{border-bottom:none}
 .sheet-add{margin-top:8px}
 .sheet-add .moods{margin-top:14px}
-.sheet-note{margin:0 0 4px;font-size:13px;color:var(--ink-faint);line-height:1.7}
 
 /* ---------- 页 ---------- */
 .page{display:block}
@@ -280,7 +261,7 @@ input.file{display:none}
 /* press feedback */
 button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .mini-primary:active,.mini-ghost:active,.confirm button:active{transform:translateY(1px)}
-.subtitle,.river-line,.me-p,.entry .note,.empty,.empty-scene{text-wrap:pretty}
+.me-p,.entry .note,.empty,.empty-scene{text-wrap:pretty}
 
 @media(max-width:520px){
   .title{font-size:22px;letter-spacing:.06em}

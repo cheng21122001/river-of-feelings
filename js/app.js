@@ -5,8 +5,7 @@ import { MOOD } from "./store.js";
 import { createRiver } from "./river.js";
 import { createEntryList } from "./entries.js";
 import { renderYear } from "./calendar.js";
-import { yearLine, riverPhrase } from "./digest.js";
-import { exportFile, importFile } from "./share.js";
+import { yearLine } from "./digest.js";
 import { $, esc, toast, openSheet, closeSheet, initSheet, prettyDate } from "./ui.js";
 import * as sync from "./sync.js";
 
@@ -28,17 +27,15 @@ async function boot() {
   initThemeToggle();
   initTodayCard();
   initHistoryNav();
-  initMePage();
 
   river = createRiver({
     canvas: $("#scene-canvas"),
-    label: $("#riverLabel"),
     empty: $("#emptyScene")
   });
 
   recentList = createEntryList($("#entries"), {
     onChange: refresh,
-    emptyText: "这里还很安静。记下第一刻吧——今天过得怎么样，都值得。"
+    emptyText: "还没有记录。"
   });
 
   const ys = store.years();
@@ -115,7 +112,7 @@ function initTodayCard() {
   };
 
   $("#save").onclick = async () => {
-    if (!todaySel) { toast("先选一个此刻的心情吧"); return; }
+    if (!todaySel) { toast("先选一个心情"); return; }
     await store.add(store.makeEntry({ mood: todaySel, note: $("#note").value }));
     $("#note").value = "";
     document.querySelectorAll("#moods .mood").forEach(x => x.classList.remove("sel"));
@@ -130,10 +127,6 @@ function renderLedger(list) {
   $("#sHappy").textContent = s.happy;
   $("#sCalm").textContent = s.calm;
   $("#sLow").textContent = s.low;
-
-  const rl = $("#riverLine");
-  if (!s.low) rl.innerHTML = "你还没有接过河水。愿你久久用不上这个小瓶子。";
-  else rl.innerHTML = "你已经接了 <em>" + s.low + "</em> 瓶河水。" + riverPhrase(s.low);
 }
 
 function renderRecent(list) {
@@ -200,13 +193,12 @@ function openDaySheet(date) {
     add.className = "sheet-add";
     add.innerHTML =
       '<div class="section-h"><h3>' + (isToday ? "再记一条" : "补记这一天") + "</h3></div>" +
-      (isToday ? "" : '<p class="sheet-note">补记的记录会带一个「补记」标记——它不假装是当时写的。</p>') +
       '<div class="moods">' +
         '<div class="mood" data-m="happy" role="button" tabindex="0"><span class="ind"><span class="disc"></span></span>快乐</div>' +
         '<div class="mood" data-m="calm" role="button" tabindex="0"><span class="ind"><span class="bar"></span></span>平静</div>' +
         '<div class="mood" data-m="low" role="button" tabindex="0"><span class="ind"><span class="ring"></span></span>不妙</div>' +
       "</div>" +
-      '<textarea class="sheet-ta" placeholder="那天发生了什么？（可留空）"></textarea>' +
+      '<textarea class="sheet-ta" placeholder="（可留空）"></textarea>' +
       '<div class="row"><button class="primary sheet-save">记下</button></div>';
     body.appendChild(add);
 
@@ -221,7 +213,7 @@ function openDaySheet(date) {
     });
 
     add.querySelector(".sheet-save").onclick = async () => {
-      if (!pick) { toast("先选一个那天的心情"); return; }
+      if (!pick) { toast("先选一个心情"); return; }
       const ta = add.querySelector(".sheet-ta");
       const backfilled = !isToday;
       // 补记的记录按它所属的那天排序，而不是按写下的时刻
@@ -241,16 +233,6 @@ function openDaySheet(date) {
 
 /* ================= 我 ================= */
 
-function initMePage() {
-  $("#exportBtn").onclick = () => { exportFile(); renderMe(store.all()); };
-  $("#importBtn").onclick = () => $("#fileInput").click();
-  $("#fileInput").onchange = ev => {
-    const f = ev.target.files[0];
-    if (f) importFile(f, refresh);
-    ev.target.value = "";
-  };
-}
-
 function renderMe(list) {
   const s = store.stats(list);
   const first = list.length ? list[list.length - 1].date : null;
@@ -258,23 +240,8 @@ function renderMe(list) {
   $("#meStats").innerHTML =
     tile(s.total, "条记录") +
     tile(s.days, "天") +
-    tile(s.low, "瓶河水") +
+    tile(s.low, "次不妙") +
     tile(first ? first.slice(5).replace("-", "/") : "—", first ? first.slice(0, 4) + " 年起" : "还没开始");
-
-  const last = store.lastBackup();
-  $("#backupHint").textContent = last
-    ? "上次导出：" + new Date(last).toLocaleDateString("zh-CN")
-    : "还没有导出过备份。";
-
-  const note = $("#backupNote");
-  if (store.needsBackup()) {
-    note.hidden = false;
-    note.textContent = last
-      ? "距上次备份已经超过一个月，这期间你又记了新的。导出一个文件存着吧。"
-      : "这条河已经有些长度了，导出一个备份文件存着吧——换设备或清了浏览器数据，记录就找不回来了。";
-  } else {
-    note.hidden = true;
-  }
 }
 
 function tile(v, label) {
@@ -318,8 +285,8 @@ function initAuth() {
     try {
       const r = await sync.signUp(email, password);
       passEl.value = "";
-      if (r.needsEmail) authMsg("注册成功。去邮箱点一下确认链接，回来再登录。");
-      else toast("账号建好了，正在把这台设备上的记录传上去");
+      if (r.needsEmail) authMsg("注册成功。去邮箱点确认链接，回来再登录。");
+      else toast("账号已创建，正在同步");
     } catch (e) {
       authMsg(e.message, true);
     } finally { busy(false); }
@@ -327,7 +294,7 @@ function initAuth() {
 
   $("#signOutBtn").onclick = async () => {
     await sync.signOut();
-    toast("已退出。这台设备上的记录还在。");
+    toast("已退出");
   };
 
   $("#syncNowBtn").onclick = async () => {
@@ -357,9 +324,7 @@ function renderAuth(state) {
   if (signedIn) {
     $("#authWho").textContent = state.user.email || "";
     const n = state.pendingCount;
-    $("#syncHint").textContent = n
-      ? n + " 条还没传上去，联网后会自动补传。"
-      : "记录已经在云端，换设备登录同一个账号就能看到。";
+    $("#syncHint").textContent = n ? n + " 条待同步" : "";
   }
 }
 

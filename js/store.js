@@ -11,12 +11,11 @@ const STORE   = "entries";
 const LS_KEY      = "river_of_feelings_v1";   // 旧版数据，迁移后保留不删
 const LS_MIRROR   = "river_of_feelings_v2";   // IDB 不可用时的兜底存放
 const LS_MIGRATED = "river_migrated_to_idb";
-const LS_BACKUP   = "river_last_backup";
 
 export const MOOD = {
-  happy: { label: "快乐", cls: "happy", short: "光" },
-  calm:  { label: "平静", cls: "calm",  short: "水色" },
-  low:   { label: "不妙", cls: "low",   short: "河水" }
+  happy: { label: "快乐", cls: "happy" },
+  calm:  { label: "平静", cls: "calm"  },
+  low:   { label: "不妙", cls: "low"   }
 };
 
 let db = null;
@@ -214,22 +213,6 @@ export async function restore(id) {
   return update(id, { deleted: false });
 }
 
-/** 导入/合并：按 id 去重，已存在的不覆盖。返回新增条数。 */
-export async function merge(list) {
-  const incoming = (list || []).filter(valid).map(normalize);
-  const have = new Set(cache.map(e => e.id));
-  const fresh = incoming.filter(e => !have.has(e.id));
-  fresh.forEach(e => { e.dirty = true; });   // 导入的也要传上云
-  if (!fresh.length) return 0;
-  cache = sortDesc(cache.concat(fresh));
-  if (usingFallback) { writeMirror(); return fresh.length; }
-  const tx = db.transaction(STORE, "readwrite");
-  const os = tx.objectStore(STORE);
-  fresh.forEach(e => os.put(e));
-  await txDone(tx);
-  return fresh.length;
-}
-
 async function persistOne(e) {
   if (usingFallback) { writeMirror(); return; }
   const tx = db.transaction(STORE, "readwrite");
@@ -309,24 +292,6 @@ function plain(e) {
     editedTs: e.editedTs, backfilled: !!e.backfilled,
     deleted: !!e.deleted, dirty: !!e.dirty
   };
-}
-
-/* ---------- 备份状态 ---------- */
-
-export function lastBackup() {
-  try { return Number(localStorage.getItem(LS_BACKUP)) || 0; } catch (e) { return 0; }
-}
-export function markBackup() {
-  try { localStorage.setItem(LS_BACKUP, String(Date.now())); } catch (e) {}
-}
-/** 距上次备份超过 30 天，且这期间有新记录 */
-export function needsBackup() {
-  if (!cache.length) return false;
-  const last = lastBackup();
-  const newest = Math.max(...cache.map(e => e.ts || 0));
-  if (!last) return cache.length >= 5;
-  if (newest <= last) return false;
-  return Date.now() - last > 30 * 24 * 3600 * 1000;
 }
 
 /* ---------- 小工具 ---------- */

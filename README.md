@@ -5,7 +5,6 @@
 
 - 本地优先：记录存在设备上（IndexedDB），装到主屏后完全离线可用
 - 登录后跨设备同步（Supabase）；不登录也能用，只是不出这台设备
-- 也可以随时导出/导入一个 JSON 文件做备份
 
 ## 装到手机上
 
@@ -24,12 +23,11 @@ python3 -m http.server 5173
 ```
 index.html              外壳：河 / 历 / 我 三页 + 底部导航
 app.css
-js/store.js             IndexedDB、从旧版 localStorage 迁移、导入导出
+js/store.js             IndexedDB、从旧版 localStorage 迁移
 js/river.js             canvas 河流动画
 js/calendar.js          年度网格（12 个月方阵）
-js/digest.js            月度小结文案（纯本地计算，不调模型）
+js/digest.js            月份名、「历」页顶部那行数字
 js/entries.js           记录卡片：编辑、删除、撤销
-js/share.js             分享链接 / 导出 / 导入
 js/ui.js                toast、底部抽屉
 js/app.js               启动、路由、各页装配
 js/config.js            Supabase URL 与 anon key（公开值，靠 RLS 保护）
@@ -60,4 +58,4 @@ artifact.html           旧版单文件存档，不再维护
 { id, date: "YYYY-MM-DD", ts, mood: "happy"|"calm"|"low", note, editedTs?, backfilled? }
 ```
 
-和旧版单文件版本完全一致，老的导出文件和分享链接都还能导进来。
+和旧版单文件版本完全一致。

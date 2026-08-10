@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>第无数次踏入同一条河流</title>
-<meta name="description" content="把每一次快乐与低落留下来，会汇成一条河。">
+<meta name="description" content="记录每天的心情。">
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#070707" media="(prefers-color-scheme: dark)">
@@ -28,25 +28,22 @@
 <main class="page" id="page-today">
   <div class="wrap">
     <header>
-      <p class="eyebrow">Diary · 日记</p>
       <h1 class="title">第无数次踏入同一条河流</h1>
-      <p class="subtitle">把每一次快乐与低落留下来，会汇成一条河——夜里它发光，白日里它是地上一道湿的虹彩。</p>
     </header>
 
     <div class="scene" id="scene">
       <canvas id="scene-canvas"></canvas>
-      <div class="river-label" id="riverLabel"></div>
-      <div class="empty-scene" id="emptyScene">还没有记录 · 河还没有流出来</div>
+      <div class="empty-scene" id="emptyScene">还没有记录</div>
     </div>
 
     <div class="ask">
       <div class="date" id="today"></div>
       <div class="moods" id="moods">
-        <div class="mood" data-m="happy" role="button" tabindex="0"><span class="ind"><span class="disc"></span></span>快乐<small>黑暗里的一点光</small></div>
-        <div class="mood" data-m="calm" role="button" tabindex="0"><span class="ind"><span class="bar"></span></span>平静<small>一片微光的水</small></div>
-        <div class="mood" data-m="low" role="button" tabindex="0"><span class="ind"><span class="ring"></span></span>不妙<small>接一瓶河水，河长一寸</small></div>
+        <div class="mood" data-m="happy" role="button" tabindex="0"><span class="ind"><span class="disc"></span></span>快乐</div>
+        <div class="mood" data-m="calm" role="button" tabindex="0"><span class="ind"><span class="bar"></span></span>平静</div>
+        <div class="mood" data-m="low" role="button" tabindex="0"><span class="ind"><span class="ring"></span></span>不妙</div>
       </div>
-      <textarea id="note" placeholder="今天发生了什么？（可留空）"></textarea>
+      <textarea id="note" placeholder="（可留空）"></textarea>
       <div class="row">
         <button class="primary" id="save">记下这一刻</button>
         <button class="ghost" id="clearSel">取消</button>
@@ -54,11 +51,10 @@
     </div>
 
     <div class="ledger">
-      <div class="tally"><b id="sHappy">0</b><span>快乐 · 光点</span></div>
-      <div class="tally"><b id="sCalm">0</b><span>平静 · 水色</span></div>
-      <div class="tally"><b id="sLow">0</b><span>不妙 · 河水</span></div>
+      <div class="tally"><b id="sHappy">0</b><span>快乐</span></div>
+      <div class="tally"><b id="sCalm">0</b><span>平静</span></div>
+      <div class="tally"><b id="sLow">0</b><span>不妙</span></div>
     </div>
-    <div class="river-line" id="riverLine"></div>
 
     <div class="section-h">
       <h3>最近</h3>
@@ -97,15 +93,12 @@
     <div class="section-h"><h3>这条河</h3></div>
     <div class="me-stats" id="meStats"></div>
 
-    <div class="backup-note" id="backupNote" hidden></div>
-
     <div class="section-h">
       <h3>云同步</h3>
       <span class="count" id="syncStatus"></span>
     </div>
 
     <div id="authOut">
-      <p class="me-p">登录之后，手机和电脑看到的是同一条河。没登录也能用，就是只存在这台设备上。</p>
       <form class="auth" id="authForm" autocomplete="on">
         <input type="email" id="authEmail" placeholder="邮箱" autocomplete="username" required>
         <input type="password" id="authPass" placeholder="密码（至少 6 位）" autocomplete="current-password" minlength="6" required>
@@ -132,15 +125,6 @@
       <button type="button" data-theme-set="dark">夜</button>
       <button type="button" data-theme-set="auto">自动</button>
     </div>
-
-    <div class="section-h"><h3>备份</h3></div>
-    <p class="me-p">记录只存在这台设备里，不上传任何服务器。换手机、或者清了浏览器数据，就没有了——所以定期导出一个文件存着。</p>
-    <div class="row">
-      <button class="primary" id="exportBtn">导出备份文件</button>
-      <button class="ghost" id="importBtn">导入</button>
-      <input type="file" class="file" id="fileInput" accept="application/json,.json">
-    </div>
-    <div class="hint" id="backupHint"></div>
   </div>
 </main>
 
