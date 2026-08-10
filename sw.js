@@ -3,7 +3,7 @@
    改了任何静态文件，就把 VERSION 加一。
 */
 
-const VERSION = "river-v9";
+const VERSION = "river-v10";
 
 const ASSETS = [
   "./",
