@@ -3,7 +3,7 @@
    改了任何静态文件，就把 VERSION 加一。
 */
 
-const VERSION = "river-v6";
+const VERSION = "river-v9";
 
 const ASSETS = [
   "./",
@@ -27,9 +27,16 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", e => {
+  // 必须 cache:"reload"：addAll 会走浏览器 HTTP 缓存，
+  // 结果新版本的缓存里装的还是旧文件，改了也看不见。
   e.waitUntil(
     caches.open(VERSION)
-      .then(c => c.addAll(ASSETS))
+      .then(c => Promise.all(ASSETS.map(u =>
+        fetch(u, { cache: "reload" }).then(r => {
+          if (!r.ok) throw new Error("装不下 " + u);
+          return c.put(u, r);
+        })
+      )))
       .then(() => self.skipWaiting())
   );
 });

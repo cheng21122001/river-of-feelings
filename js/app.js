@@ -387,6 +387,17 @@ function initThemeToggle() {
 function registerSW() {
   if (!("serviceWorker" in navigator)) return;
   if (location.protocol === "file:") return;
+
+  // 新版本接管时自动刷一次。否则当前这次打开用的还是旧文件，
+  // 得手动再开一遍才看得到更新。
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloaded) return;   // 首次装上不用刷
+    reloaded = true;
+    location.reload();
+  });
+
   const go = () => navigator.serviceWorker.register("sw.js").catch(() => {});
   // boot() 里有 await，跑到这里时 load 多半已经过去了——那就直接注册
   if (document.readyState === "complete") go();
