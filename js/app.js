@@ -8,6 +8,7 @@ import { renderYear } from "./calendar.js";
 import { yearLine, riverPhrase } from "./digest.js";
 import { shareLink, exportFile, importFile, copy, decodeData } from "./share.js";
 import { $, esc, toast, openSheet, closeSheet, initSheet, prettyDate } from "./ui.js";
+import * as sync from "./sync.js";
 
 const RECENT_LIMIT = 8;
 
@@ -75,6 +76,11 @@ async function boot() {
   if (info.migrated) toast("已把 " + info.migrated + " 条旧记录搬进来了");
   if (info.fallback) toast("这台设备的数据库用不了，已改用备用存储");
 
+  initAuth();
+  sync.onState(renderAuth);
+  // 云端拉到新东西时，整页重画
+  sync.init(() => { refresh(); renderAuth(); });
+
   registerSW();
 }
 
@@ -90,6 +96,7 @@ function refresh() {
   }
   renderHistory();
   renderMe(list);
+  sync.scheduleSync();   // 有本地改动就攒一会儿推上去；没登录时它自己不动
 }
 
 /* ================= 河（今天页） ================= */
@@ -285,6 +292,88 @@ function renderMe(list) {
 
 function tile(v, label) {
   return "<div><b>" + esc(String(v)) + "</b><span>" + esc(label) + "</span></div>";
+}
+
+/* ================= 账号与同步 ================= */
+
+function initAuth() {
+  const form = $("#authForm");
+  const emailEl = $("#authEmail");
+  const passEl = $("#authPass");
+
+  const creds = () => ({ email: emailEl.value.trim(), password: passEl.value });
+  const busy = on => {
+    $("#signInBtn").disabled = on;
+    $("#signUpBtn").disabled = on;
+  };
+
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const { email, password } = creds();
+    if (!email || !password) return;
+    busy(true);
+    authMsg("");
+    try {
+      await sync.signIn(email, password);
+      passEl.value = "";
+      toast("已登录，正在同步");
+    } catch (e) {
+      authMsg(e.message, true);
+    } finally { busy(false); }
+  };
+
+  $("#signUpBtn").onclick = async () => {
+    const { email, password } = creds();
+    if (!email || !password) { authMsg("先填邮箱和密码", true); return; }
+    if (password.length < 6) { authMsg("密码至少 6 位", true); return; }
+    busy(true);
+    authMsg("");
+    try {
+      const r = await sync.signUp(email, password);
+      passEl.value = "";
+      if (r.needsEmail) authMsg("注册成功。去邮箱点一下确认链接，回来再登录。");
+      else toast("账号建好了，正在把这台设备上的记录传上去");
+    } catch (e) {
+      authMsg(e.message, true);
+    } finally { busy(false); }
+  };
+
+  $("#signOutBtn").onclick = async () => {
+    await sync.signOut();
+    toast("已退出。这台设备上的记录还在。");
+  };
+
+  $("#syncNowBtn").onclick = async () => {
+    await sync.syncNow();
+    refresh();
+  };
+
+  renderAuth(sync.getState());
+}
+
+function authMsg(text, bad) {
+  const el = $("#authMsg");
+  if (!text) { el.hidden = true; el.textContent = ""; return; }
+  el.hidden = false;
+  el.textContent = text;
+  el.classList.toggle("bad", !!bad);
+}
+
+function renderAuth(state) {
+  state = state || sync.getState();
+  const signedIn = !!state.user;
+
+  $("#authOut").hidden = signedIn;
+  $("#authIn").hidden = !signedIn;
+  $("#syncStatus").textContent = sync.statusText();
+
+  if (signedIn) {
+    $("#authWho").textContent = state.user.email || "";
+    const n = state.pendingCount;
+    $("#syncHint").textContent = n
+      ? n + " 条还没传上去，联网后会自动补传。"
+      : "记录已经在云端，换设备登录同一个账号就能看到。";
+  }
 }
 
 /* ================= 分享进来的河 ================= */

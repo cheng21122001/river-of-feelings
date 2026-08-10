@@ -2,7 +2,7 @@
    「河」页的最近记录、日历里点开的某一天，用的都是这一套。
 */
 
-import { MOOD, update, remove, add } from "./store.js";
+import { MOOD, update, remove, restore } from "./store.js";
 import { esc, toast, toastUndo } from "./ui.js";
 
 /**
@@ -125,7 +125,7 @@ export function createEntryList(container, { onChange, emptyText, metaMode } = {
         if (onChange) onChange();
         if (removed) {
           toastUndo("已删除这条记录", async () => {
-            await add(removed);
+            await restore(removed.id);
             if (onChange) onChange();
             toast("已恢复");
           });

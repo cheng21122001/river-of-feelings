@@ -3,7 +3,7 @@
    改了任何静态文件，就把 VERSION 加一。
 */
 
-const VERSION = "river-v1";
+const VERSION = "river-v2";
 
 const ASSETS = [
   "./",
@@ -18,6 +18,10 @@ const ASSETS = [
   "js/digest.js",
   "js/share.js",
   "js/ui.js",
+  "js/config.js",
+  "js/cloud.js",
+  "js/sync.js",
+  "js/vendor/supabase.js",
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/apple-touch-icon.png"

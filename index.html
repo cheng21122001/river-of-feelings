@@ -101,6 +101,33 @@
 
     <div class="backup-note" id="backupNote" hidden></div>
 
+    <div class="section-h">
+      <h3>云同步</h3>
+      <span class="count" id="syncStatus"></span>
+    </div>
+
+    <div id="authOut">
+      <p class="me-p">登录之后，手机和电脑看到的是同一条河。没登录也能用，就是只存在这台设备上。</p>
+      <form class="auth" id="authForm" autocomplete="on">
+        <input type="email" id="authEmail" placeholder="邮箱" autocomplete="username" required>
+        <input type="password" id="authPass" placeholder="密码（至少 6 位）" autocomplete="current-password" minlength="6" required>
+        <div class="row">
+          <button type="submit" class="primary" id="signInBtn">登录</button>
+          <button type="button" class="ghost" id="signUpBtn">注册新账号</button>
+        </div>
+      </form>
+      <div class="auth-msg" id="authMsg" hidden></div>
+    </div>
+
+    <div id="authIn" hidden>
+      <p class="me-p">已登录：<b id="authWho"></b></p>
+      <div class="row">
+        <button class="ghost" id="syncNowBtn">立即同步</button>
+        <button class="ghost" id="signOutBtn">退出登录</button>
+      </div>
+      <div class="hint" id="syncHint"></div>
+    </div>
+
     <div class="section-h"><h3>外观</h3></div>
     <div class="theme-toggle" role="group" aria-label="日间或夜间">
       <button type="button" data-theme-set="light">日</button>
@@ -148,6 +175,8 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Supabase 客户端：放在本地而不是 CDN，否则离线时装不上 -->
+<script src="js/vendor/supabase.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
