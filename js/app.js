@@ -6,7 +6,7 @@ import { createRiver } from "./river.js";
 import { createEntryList } from "./entries.js";
 import { renderYear } from "./calendar.js";
 import { yearLine, riverPhrase } from "./digest.js";
-import { exportFile, importFile, decodeData } from "./share.js";
+import { exportFile, importFile } from "./share.js";
 import { $, esc, toast, openSheet, closeSheet, initSheet, prettyDate } from "./ui.js";
 import * as sync from "./sync.js";
 
@@ -16,7 +16,6 @@ let river = null;
 let recentList = null;
 let showAllRecent = false;
 let viewYear = new Date().getFullYear();
-let sharedData = null;   // 正在看别人分享的河时，这里是那批数据
 let todaySel = null;
 
 /* ================= 启动 ================= */
@@ -51,12 +50,8 @@ async function boot() {
   river.start();
   refresh();
 
-  checkIncomingShare();
   routeFromHash();
-  window.addEventListener("hashchange", () => {
-    if (location.hash.indexOf("#share=") === 0) { checkIncomingShare(); return; }
-    routeFromHash();
-  });
+  window.addEventListener("hashchange", routeFromHash);
 
   // 主题跟随系统或手动切换时，河要重画
   if (window.matchMedia) {
@@ -89,11 +84,9 @@ async function boot() {
 function refresh() {
   const list = store.all();
 
-  if (!sharedData) {
-    river.setData(list);
-    renderLedger(list);
-    renderRecent(list);
-  }
+  river.setData(list);
+  renderLedger(list);
+  renderRecent(list);
   renderHistory();
   renderMe(list);
   sync.scheduleSync();   // 有本地改动就攒一会儿推上去；没登录时它自己不动
@@ -370,52 +363,11 @@ function renderAuth(state) {
   }
 }
 
-/* ================= 分享进来的河 ================= */
-
-function checkIncomingShare() {
-  const h = location.hash;
-  if (h.indexOf("#share=") !== 0) return;
-  const data = decodeData(h.slice(7));
-  if (!data || !Array.isArray(data)) { toast("这个链接读不出来"); return; }
-
-  sharedData = data;
-  switchTab("today");
-
-  const b = $("#banner");
-  b.innerHTML = "你正在看别人分享的河（共 " + data.length + " 条记录）。这不是你自己的记录。 &nbsp; " +
-    '<button class="ghost" id="mergeBtn" style="padding:5px 12px;margin-left:6px">接进我的河</button> ' +
-    '<button class="ghost" id="dismissBtn" style="padding:5px 12px">只是看看</button>';
-  b.style.display = "block";
-
-  river.setData(data);
-  renderLedger(data);
-  recentList.render(data, true);
-  $("#entryCount").textContent = data.length + " 条";
-  $("#moreRow").innerHTML = "";
-
-  $("#mergeBtn").onclick = async () => {
-    const n = await store.merge(data);
-    endShare();
-    toast(n ? "已把 " + n + " 条接进你的河里" : "这些记录都已经在你的河里了");
-  };
-  $("#dismissBtn").onclick = () => endShare();
-}
-
-function endShare() {
-  sharedData = null;
-  $("#banner").style.display = "none";
-  history.replaceState(null, "", location.pathname + location.search);
-  refresh();
-}
-
 /* ================= tab ================= */
 
 function initTabs() {
   document.querySelectorAll(".tab").forEach(b => {
-    b.onclick = () => {
-      if (sharedData) endShare();
-      location.hash = "#/" + b.dataset.tab;
-    };
+    b.onclick = () => { location.hash = "#/" + b.dataset.tab; };
   });
 }
 

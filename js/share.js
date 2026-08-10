@@ -1,14 +1,10 @@
 /* share.js — 导出与导入备份文件。
-   「生成共享链接」的功能已经撤掉（有了云同步之后它只会让人困惑），
-   但读取链接的能力留着——以前发出去的链接还能打开。
+   共享链接那套（生成、读取、接进自己的河）已整体撤除：
+   有了云同步之后，跨设备就是登录，不需要把整条河编码进网址。
 */
 
 import { all, merge, markBackup } from "./store.js";
 import { toast } from "./ui.js";
-
-export function decodeData(str) {
-  try { return JSON.parse(decodeURIComponent(escape(atob(str)))); } catch (e) { return null; }
-}
 
 export function exportFile() {
   const list = all();

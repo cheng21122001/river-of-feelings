@@ -234,12 +234,6 @@ input.file{display:none}
 #authWho{font-family:var(--font-mono);font-size:13px;font-weight:400}
 #syncStatus{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);letter-spacing:.02em}
 
-/* ---------- 分享横幅 ---------- */
-.banner{
-  position:relative;z-index:2;margin:0;padding:calc(14px + env(safe-area-inset-top)) 22px 14px;font-size:13.5px;
-  background:var(--hi);border-bottom:1px solid var(--card-b);color:var(--ink);display:none;letter-spacing:.02em;line-height:1.7;
-}
-
 /* ---------- 底部导航 ---------- */
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;
