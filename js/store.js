@@ -5,8 +5,9 @@
 */
 
 const DB_NAME = "river_of_feelings";
-const DB_VER  = 1;
+const DB_VER  = 2;
 const STORE   = "entries";
+const STORE_DAILY = "daily";
 
 const LS_KEY      = "river_of_feelings_v1";   // 旧版数据，迁移后保留不删
 const LS_MIRROR   = "river_of_feelings_v2";   // IDB 不可用时的兜底存放
@@ -33,6 +34,12 @@ function openDB() {
       const d = req.result;
       if (!d.objectStoreNames.contains(STORE)) {
         const os = d.createObjectStore(STORE, { keyPath: "id" });
+        os.createIndex("date", "date", { unique: false });
+        os.createIndex("ts", "ts", { unique: false });
+      }
+      // 版本 2 新增：日课记录。已有的 entries 原样保留，不迁移。
+      if (!d.objectStoreNames.contains(STORE_DAILY)) {
+        const os = d.createObjectStore(STORE_DAILY, { keyPath: "id" });
         os.createIndex("date", "date", { unique: false });
         os.createIndex("ts", "ts", { unique: false });
       }
@@ -332,3 +339,6 @@ function dedupe(list) {
 }
 
 export function isFallback() { return usingFallback; }
+
+/** 数据库句柄。只有 store.js 开库，日课那套复用这个连接。 */
+export function getDB() { return db; }

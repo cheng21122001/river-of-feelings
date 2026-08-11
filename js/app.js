@@ -2,6 +2,7 @@
 
 import * as store from "./store.js";
 import { MOOD } from "./store.js";
+import * as daily from "./daily-store.js";
 import { createEntryList } from "./entries.js";
 import { renderYear } from "./calendar.js";
 import { yearLine } from "./digest.js";
@@ -19,6 +20,7 @@ let todaySel = null;
 
 async function boot() {
   const info = await store.init();
+  await daily.init();
 
   initSheet();
   initTabs();
