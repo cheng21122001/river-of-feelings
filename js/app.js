@@ -3,6 +3,7 @@
 import * as store from "./store.js";
 import { MOOD } from "./store.js";
 import * as daily from "./daily-store.js";
+import * as dailyUI from "./daily.js";
 import { createEntryList } from "./entries.js";
 import { renderYear } from "./calendar.js";
 import { yearLine } from "./digest.js";
@@ -62,6 +63,7 @@ function refresh() {
 
   renderLedger(list);
   renderRecent(list);
+  renderDaily();
   renderHistory();
   renderMe(list);
   sync.scheduleSync();   // 有本地改动就攒一会儿推上去；没登录时它自己不动
@@ -105,6 +107,10 @@ function renderLedger(list) {
   $("#sHappy").textContent = s.happy;
   $("#sCalm").textContent = s.calm;
   $("#sLow").textContent = s.low;
+}
+
+function renderDaily() {
+  dailyUI.renderToday($("#dailyToday"), () => sync.scheduleSync());
 }
 
 function renderRecent(list) {
