@@ -268,6 +268,12 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
   #yearGrid{grid-template-columns:1fr;gap:22px}
   .month{grid-template-columns:132px 1fr;gap:13px}
   .wrap{padding-left:18px;padding-right:18px}
+
+  /* 窄屏上「编辑/删除」不再和正文抢同一行——它们占掉近三成宽度，
+     把正文挤成一行放不下几个字。让它们换行到下面靠右。 */
+  .entry{gap:12px;flex-wrap:wrap}
+  .entry .acts,.entry .confirm{flex:0 0 100%;justify-content:flex-end;margin-top:0}
+  .entry .confirm{flex-wrap:wrap;row-gap:6px}
 }
 
 /* ===== 日课 ===== */
@@ -279,12 +285,9 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
   border-radius:10px;background:transparent;color:var(--ink);
   font:inherit;text-align:left;cursor:pointer}
 .daily-row.on{border-color:var(--card-b);background:var(--card)}
-.daily-row.extra .daily-name{color:var(--ink-faint)}
 .daily-name{font-size:14px}
 .daily-mark{font-size:15px;color:var(--ink-soft)}
 .daily-row.on .daily-mark{color:var(--ink)}
-.daily-foot{margin-top:8px}
-.daily-more{font-size:13px;padding:5px 10px}
 
 /* 日课标记：格子右下角一个小点，不抢心情的底色 */
 .cell.studied{position:relative}
@@ -298,6 +301,14 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .daily-list{list-style:none;padding:0;margin:0;font-size:14px;line-height:1.9;color:var(--ink-soft)}
 
 /* ===== 「我」页的日课 ===== */
+/* 「这段路」只有一行，用不着「这条河」那个两列网格——
+   套上去右半边会空出一块底色。这里是单独的一块。 */
+.daily-stats{border:1px solid var(--line);border-radius:10px;padding:18px 16px}
+.daily-stats .me-row{padding:0}
+.daily-stats b{font-family:var(--font-mono);font-size:28px;font-weight:400;
+  line-height:1;font-variant-numeric:tabular-nums}
+.daily-stats span{font-size:11px;color:var(--ink-soft);letter-spacing:.1em}
+
 .me-row{display:flex;justify-content:space-between;align-items:baseline;
   padding:7px 0;font-size:14px}
 .me-row span{color:var(--ink-soft)}

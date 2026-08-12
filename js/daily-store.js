@@ -14,10 +14,11 @@ export const ITEMS = {
   reading: { label: "读课件" },
   writing: { label: "写作"   },
   spanish: { label: "西语"   },
-  fitness: { label: "健身"   }
+  fitness: { label: "健身"   },
+  movie:   { label: "电影"   }
 };
 
-export const ITEM_KEYS = ["vocab", "reading", "writing", "spanish", "fitness"];
+export const ITEM_KEYS = ["vocab", "reading", "writing", "spanish", "fitness", "movie"];
 
 let cache = [];
 let usingFallback = false;

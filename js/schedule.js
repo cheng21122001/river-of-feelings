@@ -15,9 +15,9 @@ export const DEFAULT = {
   2: ["vocab", "spanish", "reading"],
   3: ["vocab", "spanish", "fitness"],
   4: ["vocab", "spanish", "reading"],
-  5: ["vocab", "spanish", "fitness"],
-  6: ["vocab", "spanish", "writing"],
-  7: ["vocab", "spanish"]
+  5: ["vocab", "spanish", "fitness", "movie"],
+  6: ["vocab", "spanish", "writing", "movie"],
+  7: ["vocab", "spanish", "movie"]
 };
 
 let cache = null;

@@ -68,7 +68,7 @@ artifact.html           旧版单文件存档，不再维护
 日课记录：
 
 ```js
-{ id, date: "YYYY-MM-DD", ts, item: "vocab"|"reading"|"writing"|"spanish"|"fitness",
+{ id, date: "YYYY-MM-DD", ts, item: "vocab"|"reading"|"writing"|"spanish"|"fitness"|"movie",
   editedTs?, deleted?, dirty? }
 ```
 

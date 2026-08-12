@@ -16,32 +16,25 @@ import { esc, toast } from "./ui.js";
 export function renderToday(box, onChange) {
   const date = todayStr();
   const planned = schedule.forDate(date);
-  const expanded = box.dataset.expanded === "1";
-  const extra = daily.ITEM_KEYS.filter(k => !planned.includes(k));
-  const shown = expanded ? planned.concat(extra) : planned;
 
-  const head = planned.length ? "今天排了" : "今天没排，想记也可以记";
+  // 只画今天排了的。想记别的，就去「我」页把它排进来——
+  // 排班表是这里唯一的入口，没有临时通道。
+  const head = planned.length ? "今天排了" : "今天没排";
 
-  const rows = shown.map(k => rowHTML(k, date, !planned.includes(k))).join("");
-
-  const moreLabel = expanded ? "收起" : "记别的";
-  const more = extra.length
-    ? '<button class="ghost daily-more" id="dailyMore">' + moreLabel + "</button>"
-    : "";
+  const rows = planned.map(k => rowHTML(k, date)).join("");
 
   box.innerHTML =
     '<div class="daily-h">' + esc(head) + "</div>" +
-    '<div class="daily-rows">' + rows + "</div>" +
-    (more ? '<div class="daily-foot">' + more + "</div>" : "");
+    '<div class="daily-rows">' + rows + "</div>";
 
   wire(box, date, onChange);
 }
 
-function rowHTML(item, date, isExtra) {
+function rowHTML(item, date) {
   const done = daily.doneOn(date, item);
   const label = daily.ITEMS[item].label;
   return '<button type="button" class="daily-row' + (done ? " on" : "") +
-    (isExtra ? " extra" : "") + '" data-item="' + item + '" ' +
+    '" data-item="' + item + '" ' +
     'aria-pressed="' + (done ? "true" : "false") + '">' +
     '<span class="daily-name">' + esc(label) + "</span>" +
     '<span class="daily-mark">' + (done ? "✓" : "○") + "</span>" +
@@ -49,14 +42,6 @@ function rowHTML(item, date, isExtra) {
 }
 
 function wire(box, date, onChange) {
-  const more = box.querySelector("#dailyMore");
-  if (more) {
-    more.onclick = () => {
-      box.dataset.expanded = box.dataset.expanded === "1" ? "0" : "1";
-      renderToday(box, onChange);
-    };
-  }
-
   box.querySelectorAll(".daily-row[data-item]").forEach(btn => {
     btn.onclick = () => {
       if (btn.disabled) return;
