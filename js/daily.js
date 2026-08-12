@@ -20,6 +20,10 @@ export function renderToday(box, onChange) {
   const extra = daily.ITEM_KEYS.filter(k => !planned.includes(k));
   const shown = expanded ? planned.concat(extra) : planned;
 
+  // 重画会整个换掉 box.innerHTML——先把还没提交的输入捞出来，画完再填回去。
+  // 刚提交成功的那一行画完之后不再是输入框，捞不到自然也填不回去。
+  const pending = capturePending(box);
+
   const head = planned.length ? "今天排了" : "今天没排，想记也可以记";
 
   const rows = shown.map(k => rowHTML(k, date, !planned.includes(k))).join("");
@@ -34,7 +38,23 @@ export function renderToday(box, onChange) {
     '<div class="daily-rows">' + rows + "</div>" +
     (more ? '<div class="daily-foot">' + more + "</div>" : "");
 
+  restorePending(box, pending);
   wire(box, date, onChange);
+}
+
+function capturePending(box) {
+  const out = {};
+  box.querySelectorAll(".daily-min").forEach(input => {
+    if (input.value !== "") out[input.dataset.item] = input.value;
+  });
+  return out;
+}
+
+function restorePending(box, pending) {
+  box.querySelectorAll(".daily-min").forEach(input => {
+    const v = pending[input.dataset.item];
+    if (v !== undefined) input.value = v;
+  });
 }
 
 function rowHTML(item, date, isExtra) {
@@ -65,12 +85,23 @@ function wire(box, date, onChange) {
   }
 
   box.querySelectorAll("[data-ok]").forEach(btn => {
-    btn.onclick = () => commit(box, date, btn.dataset.ok, onChange);
+    btn.onclick = () => {
+      if (btn.disabled) return;
+      btn.disabled = true;   // 提交进行中，挡掉连点造成的重复记录
+      commit(box, date, btn.dataset.ok, onChange);
+    };
   });
 
   box.querySelectorAll(".daily-min").forEach(input => {
     input.onkeydown = e => {
-      if (e.key === "Enter") { e.preventDefault(); commit(box, date, input.dataset.item, onChange); }
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const btn = box.querySelector('[data-ok="' + input.dataset.item + '"]');
+      if (btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+      }
+      commit(box, date, input.dataset.item, onChange);
     };
   });
 
@@ -88,9 +119,10 @@ function wire(box, date, onChange) {
 
 async function commit(box, date, item, onChange) {
   const input = box.querySelector('.daily-min[data-item="' + item + '"]');
+  const btn = box.querySelector('[data-ok="' + item + '"]');
   const n = Math.round(Number(input && input.value));
-  if (!n || n <= 0) { toast("填个分钟数"); if (input) input.focus(); return; }
-  if (n > 600) { toast("最多 600 分钟"); return; }
+  if (!n || n <= 0) { toast("填个分钟数"); if (input) input.focus(); if (btn) btn.disabled = false; return; }
+  if (n > 600) { toast("最多 600 分钟"); if (btn) btn.disabled = false; return; }
 
   await daily.add(daily.makeLog({ item, minutes: n, date }));
   toast(daily.ITEMS[item].label + " " + n + " 分钟");
