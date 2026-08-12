@@ -50,6 +50,19 @@ function openDB() {
   });
 }
 
+/** 不带版本号打开：直接用库现有的版本，不会触发升级，因此不会被 onblocked 挡住。
+    升级被别的标签页挡住时，用它至少保住心情记录的读写。 */
+function openDBNoUpgrade() {
+  return new Promise((resolve, reject) => {
+    let req;
+    try { req = indexedDB.open(DB_NAME); }
+    catch (e) { return reject(e); }
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    req.onblocked = () => reject(new Error("blocked"));
+  });
+}
+
 function reqP(r) {
   return new Promise((res, rej) => {
     r.onsuccess = () => res(r.result);
@@ -81,13 +94,28 @@ function readLegacy() {
 /* ---------- 启动 ---------- */
 
 export async function init() {
+  let degraded = false;
   try {
     db = await openDB();
   } catch (e) {
-    usingFallback = true;
-    cache = sortDesc(readMirror().concat(readLegacy()).filter(valid));
-    cache = dedupe(cache);
-    return { fallback: true, migrated: 0 };
+    // 升级被别的标签页挡住了（或开库出错）。先退一步：不带版本号打开，
+    // 拿到现有的库就够读写心情记录了——这一步的目标是绝不让使用者
+    // 看到"记录消失"，哪怕日课这次用不了。
+    try {
+      const legacyDb = await openDBNoUpgrade();
+      if (legacyDb && legacyDb.objectStoreNames.contains(STORE)) {
+        db = legacyDb;
+        degraded = true;
+      } else {
+        if (legacyDb) legacyDb.close();
+        throw new Error("no entries store");
+      }
+    } catch (e2) {
+      usingFallback = true;
+      cache = sortDesc(readMirror().concat(readLegacy()).filter(valid));
+      cache = dedupe(cache);
+      return { fallback: true, migrated: 0, degraded: false };
+    }
   }
 
   cache = sortDesc((await reqP(db.transaction(STORE, "readonly").objectStore(STORE).getAll())).filter(valid));
@@ -112,7 +140,7 @@ export async function init() {
     try { localStorage.setItem(LS_MIGRATED, "1"); } catch (e) {}
   }
 
-  return { fallback: false, migrated };
+  return { fallback: false, migrated, degraded };
 }
 
 /* ---------- 读 ---------- */
@@ -342,3 +370,8 @@ export function isFallback() { return usingFallback; }
 
 /** 数据库句柄。只有 store.js 开库，日课那套复用这个连接。 */
 export function getDB() { return db; }
+
+/** 这次打开的库里有没有这个 objectStore。降级打开时 daily 可能不存在。 */
+export function hasStore(name) {
+  return !!(db && db.objectStoreNames.contains(name));
+}

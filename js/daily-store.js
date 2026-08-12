@@ -4,7 +4,7 @@
    { id, date:"YYYY-MM-DD", ts, item, editedTs?, deleted?, dirty? }
 */
 
-import { getDB, todayStr } from "./store.js";
+import { getDB, hasStore, todayStr } from "./store.js";
 
 const STORE = "daily";
 const LS_MIRROR = "river_daily_v1";   // IDB 不可用时的兜底存放
@@ -51,7 +51,9 @@ function writeMirror() {
 /** 必须在 store.init() 之后调用，否则拿不到数据库句柄。 */
 export async function init() {
   const db = getDB();
-  if (!db) {
+  // 库没开起来，或者这次是降级打开（库里还没有 daily store）——
+  // 都退到 localStorage 兜底，绝不让日课把心情那边拖下水。
+  if (!db || !hasStore(STORE)) {
     usingFallback = true;
     cache = sortDesc(readMirror().filter(valid).map(normalize));
     return { fallback: true };

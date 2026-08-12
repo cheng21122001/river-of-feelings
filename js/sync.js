@@ -79,11 +79,17 @@ export async function syncNow() {
   try {
     await handleAccountSwitch();
 
+    // 心情：这条线的失败照旧向外抛，它是这个 App 的本体。
     const remote = await cloud.pull();
     const applied = await store.applyRemote(remote);
 
-    const remoteDaily = await cloud.pullDaily();
-    const appliedDaily = await daily.applyRemote(remoteDaily);
+    // 日课：单独兜住。日课那张表出问题不该连累心情记录的收发。
+    let appliedDaily = 0;
+    let dailyErr = null;
+    try {
+      const remoteDaily = await cloud.pullDaily();
+      appliedDaily = await daily.applyRemote(remoteDaily);
+    } catch (e) { dailyErr = e; }
 
     const dirty = store.dirtyRows();
     if (dirty.length) {
@@ -93,12 +99,21 @@ export async function syncNow() {
 
     const dirtyDaily = daily.dirtyRows();
     if (dirtyDaily.length) {
-      await cloud.pushDaily(dirtyDaily, user.id);
-      await daily.markClean(dirtyDaily.map(e => e.id));
+      try {
+        await cloud.pushDaily(dirtyDaily, user.id);
+        await daily.markClean(dirtyDaily.map(e => e.id));
+      } catch (e) { dailyErr = dailyErr || e; }
     }
 
     lastAt = Date.now();
-    set("ok");
+    if (dailyErr) {
+      // statusText() 会给 message 前面再拼一次「同步出错：」，
+      // 这里只补「日课」这个限定语，不重复「同步出错」四个字，
+      // 拼出来是「同步出错：日课 · <具体错误>」。
+      set("error", "日课 · " + (dailyErr.message || dailyErr));
+    } else {
+      set("ok");
+    }
     const touched = applied || dirty.length || appliedDaily || dirtyDaily.length;
     if (touched && onDataChanged) onDataChanged();
   } catch (e) {
@@ -156,10 +171,12 @@ export async function signUp(email, password) {
 export async function signOut() {
   await cloud.signOut();
   user = null;
-  cloud.setSyncedUser(null);
   cloud.resetCursor();
   set("signed-out");
-  // 本地记录留着不动：退出登录不该让这台设备上的东西消失
+  // 本地记录留着不动：退出登录不该让这台设备上的东西消失。
+  // syncedUser 也不清——留着它，下次登录时 handleAccountSwitch() 才能
+  // 分清是「同账号重登」（增量同步）还是「换了账号」（清空重拉），
+  // 不然每次登录都会被当成这台设备首次同步，把本地记录错推进新账号。
 }
 
 export function statusText() {
