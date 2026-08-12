@@ -180,10 +180,7 @@ function openDaySheet(date) {
       const dailyBox = document.createElement("div");
       dailyBox.innerHTML = '<div class="sheet-sub">日课</div>' +
         '<ul class="daily-list">' +
-        logs.map(e =>
-          "<li>" + esc(daily.ITEMS[e.item].label) + " · " + e.minutes + " 分钟" +
-          (e.note ? " · " + esc(e.note) : "") + "</li>"
-        ).join("") +
+        logs.map(e => "<li>" + esc(daily.ITEMS[e.item].label) + "</li>").join("") +
         "</ul>";
       body.appendChild(dailyBox);
     }

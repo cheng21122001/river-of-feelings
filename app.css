@@ -275,20 +275,14 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .daily-h{font-size:13px;color:var(--ink-soft);margin-bottom:8px;letter-spacing:.05em}
 .daily-rows{display:flex;flex-direction:column;gap:6px}
 .daily-row{display:flex;align-items:center;justify-content:space-between;
-  gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px}
+  gap:10px;width:100%;padding:11px 12px;border:1px solid var(--line);
+  border-radius:10px;background:transparent;color:var(--ink);
+  font:inherit;text-align:left;cursor:pointer}
 .daily-row.on{border-color:var(--card-b);background:var(--card)}
 .daily-row.extra .daily-name{color:var(--ink-faint)}
 .daily-name{font-size:14px}
-.daily-act{display:flex;align-items:center;gap:6px}
-.daily-min{width:74px;padding:5px 8px;font-size:13px;text-align:right;
-  border:1px solid var(--line);border-radius:7px;
-  background:var(--field-bg);color:var(--ink)}
-.daily-min::-webkit-outer-spin-button,.daily-min::-webkit-inner-spin-button{
-  -webkit-appearance:none;margin:0}
-.daily-ok,.daily-undo{border:0;background:transparent;color:var(--ink-soft);
-  cursor:pointer;font-size:15px;padding:4px 6px}
-.daily-ok:hover,.daily-undo:hover{color:var(--ink)}
-.daily-done{font-size:13px;color:var(--ink-soft)}
+.daily-mark{font-size:15px;color:var(--ink-soft)}
+.daily-row.on .daily-mark{color:var(--ink)}
 .daily-foot{margin-top:8px}
 .daily-more{font-size:13px;padding:5px 10px}
 
@@ -307,10 +301,6 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .me-row{display:flex;justify-content:space-between;align-items:baseline;
   padding:7px 0;font-size:14px}
 .me-row span{color:var(--ink-soft)}
-.me-hint{font-size:13px;color:var(--ink-faint);padding:6px 0}
-.dist{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.dist-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
-.dist-row span{color:var(--ink-soft)}
 
 .sched{display:flex;flex-direction:column;gap:8px}
 .sched-row{display:flex;align-items:center;gap:10px}

@@ -1,7 +1,7 @@
 /* daily-store.js — 日课记录的存放处。
    结构与 store.js 平行：IndexedDB 为主，localStorage 兜底。
    数据库由 store.js 打开，这里只借用句柄——两处各开一次会因版本号打架。
-   { id, date:"YYYY-MM-DD", ts, item, minutes, note, editedTs?, deleted?, dirty? }
+   { id, date:"YYYY-MM-DD", ts, item, editedTs?, deleted?, dirty? }
 */
 
 import { getDB, todayStr } from "./store.js";
@@ -70,9 +70,9 @@ export function onDate(date) {
   return cache.filter(e => !e.deleted && e.date === date).sort((a, b) => a.ts - b.ts);
 }
 
-/** 某天某项目的累计分钟 */
-export function minutesOn(date, item) {
-  return onDate(date).filter(e => e.item === item).reduce((n, e) => n + (e.minutes || 0), 0);
+/** 某天某项目做了没有 */
+export function doneOn(date, item) {
+  return onDate(date).some(e => e.item === item);
 }
 
 /** 有日课记录的日期集合，日历那层用 */
@@ -94,34 +94,15 @@ export function streak() {
   return n;
 }
 
-/** 近 N 天的汇总 */
-export function statsSince(days) {
-  const from = new Date();
-  from.setDate(from.getDate() - (days - 1));
-  const fromStr = todayStr(from);
-  const list = all().filter(e => e.date >= fromStr);
-  const byItem = {};
-  ITEM_KEYS.forEach(k => { byItem[k] = 0; });
-  list.forEach(e => { if (byItem[e.item] != null) byItem[e.item] += (e.minutes || 0); });
-  return {
-    total: list.length,
-    minutes: list.reduce((n, e) => n + (e.minutes || 0), 0),
-    byItem,
-    days: new Set(list.map(e => e.date)).size
-  };
-}
-
 /* ---------- 写 ---------- */
 
-export function makeLog({ item, minutes, note, date, ts }) {
+export function makeLog({ item, date, ts }) {
   const now = Date.now();
   return normalize({
     id: "d" + now + Math.floor(Math.random() * 999),
     date: date || todayStr(),
     ts: ts || now,
-    item,
-    minutes: Math.max(0, Math.round(Number(minutes) || 0)),
-    note: (note || "").trim()
+    item
   });
 }
 
@@ -143,7 +124,6 @@ export async function update(id, patch) {
   const e = cache.find(x => x.id === id);
   if (!e) return null;
   Object.assign(e, patch, { editedTs: Date.now(), dirty: true });
-  if (patch.minutes != null) e.minutes = Math.max(0, Math.round(Number(patch.minutes) || 0));
   await persistOne(e);
   return e;
 }
@@ -225,8 +205,8 @@ async function persistMany(list) {
 
 function plain(e) {
   return {
-    id: e.id, date: e.date, ts: e.ts, item: e.item, minutes: e.minutes,
-    note: e.note, editedTs: e.editedTs,
+    id: e.id, date: e.date, ts: e.ts, item: e.item,
+    editedTs: e.editedTs,
     deleted: !!e.deleted, dirty: !!e.dirty
   };
 }
@@ -243,8 +223,6 @@ function normalize(e) {
     date: e.date,
     ts: e.ts || Date.parse(e.date + "T12:00:00") || Date.now(),
     item: e.item,
-    minutes: Math.max(0, Math.round(Number(e.minutes) || 0)),
-    note: e.note || "",
     editedTs: e.editedTs,
     deleted: !!e.deleted,
     dirty: !!e.dirty
