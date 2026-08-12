@@ -6,6 +6,7 @@
 
 import * as store from "./store.js";
 import * as cloud from "./cloud.js";
+import * as daily from "./daily-store.js";
 
 const AUTO_INTERVAL = 5 * 60 * 1000;   // 兜底轮询
 const DEBOUNCE = 1500;                 // 本地写入后等一会儿再推，避免连打
@@ -21,7 +22,10 @@ let onDataChanged = null;
 const listeners = [];
 
 export function getState() {
-  return { user, status, message, lastAt, pendingCount: store.dirtyRows().length };
+  return {
+    user, status, message, lastAt,
+    pendingCount: store.dirtyRows().length + daily.dirtyRows().length
+  };
 }
 
 export function onState(fn) { listeners.push(fn); }
@@ -78,15 +82,25 @@ export async function syncNow() {
     const remote = await cloud.pull();
     const applied = await store.applyRemote(remote);
 
+    const remoteDaily = await cloud.pullDaily();
+    const appliedDaily = await daily.applyRemote(remoteDaily);
+
     const dirty = store.dirtyRows();
     if (dirty.length) {
       await cloud.push(dirty, user.id);
       await store.markClean(dirty.map(e => e.id));
     }
 
+    const dirtyDaily = daily.dirtyRows();
+    if (dirtyDaily.length) {
+      await cloud.pushDaily(dirtyDaily, user.id);
+      await daily.markClean(dirtyDaily.map(e => e.id));
+    }
+
     lastAt = Date.now();
     set("ok");
-    if ((applied || dirty.length) && onDataChanged) onDataChanged();
+    const touched = applied || dirty.length || appliedDaily || dirtyDaily.length;
+    if (touched && onDataChanged) onDataChanged();
   } catch (e) {
     const m = String(e && e.message ? e.message : e);
     if (/fetch|network|offline/i.test(m)) set("offline");
@@ -109,8 +123,10 @@ async function handleAccountSwitch() {
 
   if (!prev) {
     await store.markAllDirty();
+    await daily.markAllDirty();
   } else {
     await store.clearAll();
+    await daily.clearAll();
     cloud.resetCursor();
     if (onDataChanged) onDataChanged();
   }
@@ -147,7 +163,7 @@ export async function signOut() {
 }
 
 export function statusText() {
-  const n = store.dirtyRows().length;
+  const n = store.dirtyRows().length + daily.dirtyRows().length;
   switch (status) {
     case "signed-out": return "未登录 · 记录只存在这台设备";
     case "syncing":    return "正在同步…";

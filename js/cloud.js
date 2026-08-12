@@ -6,7 +6,9 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const TABLE = "entries";
+const TABLE_DAILY = "daily_logs";
 const LS_CURSOR = "river_sync_cursor";   // 上次拉取到的服务器时间
+const LS_CURSOR_DAILY = "river_sync_cursor_daily";
 const LS_USER   = "river_sync_user";     // 上次同步的账号，用来识别换号
 
 let client = null;
@@ -75,6 +77,12 @@ export function getCursor() {
 function setCursor(v) {
   try { if (v) localStorage.setItem(LS_CURSOR, v); } catch (e) {}
 }
+function getCursorDaily() {
+  try { return localStorage.getItem(LS_CURSOR_DAILY) || null; } catch (e) { return null; }
+}
+function setCursorDaily(v) {
+  try { if (v) localStorage.setItem(LS_CURSOR_DAILY, v); } catch (e) {}
+}
 export function getSyncedUser() {
   try { return localStorage.getItem(LS_USER) || null; } catch (e) { return null; }
 }
@@ -82,7 +90,10 @@ export function setSyncedUser(id) {
   try { id ? localStorage.setItem(LS_USER, id) : localStorage.removeItem(LS_USER); } catch (e) {}
 }
 export function resetCursor() {
-  try { localStorage.removeItem(LS_CURSOR); } catch (e) {}
+  try {
+    localStorage.removeItem(LS_CURSOR);
+    localStorage.removeItem(LS_CURSOR_DAILY);
+  } catch (e) {}
 }
 
 /* ================= 字段映射 ================= */
@@ -110,6 +121,30 @@ export function fromRemote(r) {
     note: r.note || "",
     editedTs: r.edited_ts ? Number(r.edited_ts) : undefined,
     backfilled: !!r.backfilled,
+    deleted: !!r.deleted,
+    dirty: false
+  };
+}
+
+function toRemoteDaily(e, userId) {
+  return {
+    user_id: userId,
+    id: e.id,
+    date: e.date,
+    ts: e.ts,
+    item: e.item,
+    edited_ts: e.editedTs || null,
+    deleted: !!e.deleted
+  };
+}
+
+export function fromRemoteDaily(r) {
+  return {
+    id: r.id,
+    date: r.date,
+    ts: Number(r.ts),
+    item: r.item,
+    editedTs: r.edited_ts ? Number(r.edited_ts) : undefined,
     deleted: !!r.deleted,
     dirty: false
   };
@@ -151,5 +186,40 @@ export async function push(rows, userId) {
   }
 
   if (newest) setCursor(newest);
+  return rows.length;
+}
+
+/** 拉取日课记录。规则与 pull() 完全一致，只是换了表和游标。 */
+export async function pullDaily() {
+  let q = sb().from(TABLE_DAILY).select("*").order("updated_at", { ascending: true }).limit(5000);
+  const cursor = getCursorDaily();
+  if (cursor) q = q.gt("updated_at", cursor);
+
+  const { data, error } = await q;
+  if (error) throw new Error("拉取日课失败：" + error.message);
+
+  if (data && data.length) setCursorDaily(data[data.length - 1].updated_at);
+  return (data || []).map(fromRemoteDaily);
+}
+
+/** 推送日课记录。 */
+export async function pushDaily(rows, userId) {
+  if (!rows.length) return 0;
+
+  const CHUNK = 200;
+  let newest = getCursorDaily();
+
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const batch = rows.slice(i, i + CHUNK).map(e => toRemoteDaily(e, userId));
+    const { data, error } = await sb()
+      .from(TABLE_DAILY)
+      .upsert(batch, { onConflict: "user_id,id" })
+      .select("updated_at");
+    if (error) throw new Error("上传日课失败：" + error.message);
+
+    (data || []).forEach(r => { if (!newest || r.updated_at > newest) newest = r.updated_at; });
+  }
+
+  if (newest) setCursorDaily(newest);
   return rows.length;
 }
