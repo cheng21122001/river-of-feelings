@@ -291,3 +291,14 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .daily-done{font-size:13px;color:var(--ink-soft)}
 .daily-foot{margin-top:8px}
 .daily-more{font-size:13px;padding:5px 10px}
+
+/* 日课标记：格子右下角一个小点，不抢心情的底色 */
+.cell.studied{position:relative}
+.cell.studied::after{content:"";position:absolute;right:1px;bottom:1px;
+  width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.75}
+.lg.studied-dot{position:relative;background:transparent;border:1px solid var(--line)}
+.lg.studied-dot::after{content:"";position:absolute;right:1px;bottom:1px;
+  width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.75}
+
+.sheet-sub{font-size:12px;color:var(--ink-soft);margin:14px 0 6px;letter-spacing:.06em}
+.daily-list{list-style:none;padding:0;margin:0;font-size:14px;line-height:1.9;color:var(--ink-soft)}

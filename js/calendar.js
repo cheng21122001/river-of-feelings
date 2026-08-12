@@ -11,10 +11,11 @@ const WD = ["一", "二", "三", "四", "五", "六", "日"];
 /**
  * @param {HTMLElement} container
  * @param {number} year
- * @param {Array} list 该年的全部记录
+ * @param {Array} list 该年的全部心情记录
+ * @param {Set<string>} dailyDates 有日课记录的日期
  * @param {Function} onDayClick (dateStr) => void
  */
-export function renderYear(container, year, list, onDayClick) {
+export function renderYear(container, year, list, dailyDates, onDayClick) {
   const byDate = new Map();
   list.forEach(e => {
     if (!byDate.has(e.date)) byDate.set(e.date, []);
@@ -26,7 +27,7 @@ export function renderYear(container, year, list, onDayClick) {
 
   for (let m = 0; m < 12; m++) {
     const monthEntries = list.filter(e => Number(e.date.slice(5, 7)) === m + 1);
-    html.push(monthHTML(year, m, byDate, today, monthEntries));
+    html.push(monthHTML(year, m, byDate, today, monthEntries, dailyDates || new Set()));
   }
 
   container.innerHTML = html.join("");
@@ -36,7 +37,7 @@ export function renderYear(container, year, list, onDayClick) {
   });
 }
 
-function monthHTML(year, m, byDate, today, monthEntries) {
+function monthHTML(year, m, byDate, today, monthEntries, dailyDates) {
   const first = new Date(year, m, 1);
   const daysInMonth = new Date(year, m + 1, 0).getDate();
   const lead = (first.getDay() + 6) % 7;   // 周一起始
@@ -65,8 +66,11 @@ function monthHTML(year, m, byDate, today, monthEntries) {
     const cls = ["cell", mood || "none", "lvl" + Math.min(4, n)];
     if (date === today) cls.push("today");
 
+    const studied = dailyDates.has(date);
+    if (studied) cls.push("studied");
+
     const aria = date + (mood ? "，" + ({ happy: "快乐", calm: "平静", low: "不妙" }[mood]) : "，没有记录") +
-                 (n ? "，" + n + " 条" : "");
+                 (n ? "，" + n + " 条" : "") + (studied ? "，做了日课" : "");
 
     cells.push(
       '<button class="' + cls.join(" ") + '" data-date="' + date + '" aria-label="' + esc(aria) + '">' +

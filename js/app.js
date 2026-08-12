@@ -110,7 +110,9 @@ function renderLedger(list) {
 }
 
 function renderDaily() {
-  dailyUI.renderToday($("#dailyToday"), () => sync.scheduleSync());
+  // 日课打卡要让「历」页的年度日历跟着更新（今天那格的小点），
+  // 所以这里接的是全局 refresh，而不只是排同步——refresh 内部本来就会调 scheduleSync。
+  dailyUI.renderToday($("#dailyToday"), () => refresh());
 }
 
 function renderRecent(list) {
@@ -149,7 +151,7 @@ function renderHistory() {
   const list = all.filter(e => e.date.startsWith(String(viewYear)));
   $("#yearLine").textContent = yearLine(list);
 
-  renderYear($("#yearGrid"), viewYear, list, openDaySheet);
+  renderYear($("#yearGrid"), viewYear, list, daily.datesWithLogs(), openDaySheet);
 }
 
 /* ================= 某一天（抽屉） ================= */
@@ -171,6 +173,20 @@ function openDaySheet(date) {
     list.render(dayEntries, false);
 
     function rerenderSheetList() { list.render(store.onDate(date), false); }
+
+    // 日课段落——心情记录列表之后，没有日课记录的日子不显示
+    const logs = daily.onDate(date);
+    if (logs.length) {
+      const dailyBox = document.createElement("div");
+      dailyBox.innerHTML = '<div class="sheet-sub">日课</div>' +
+        '<ul class="daily-list">' +
+        logs.map(e =>
+          "<li>" + esc(daily.ITEMS[e.item].label) + " · " + e.minutes + " 分钟" +
+          (e.note ? " · " + esc(e.note) : "") + "</li>"
+        ).join("") +
+        "</ul>";
+      body.appendChild(dailyBox);
+    }
 
     // 补记 / 再记一条
     const add = document.createElement("div");
