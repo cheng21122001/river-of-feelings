@@ -266,16 +266,24 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
   .title{font-size:22px;letter-spacing:.06em}
   .tally b{font-size:38px}
   /* 窄屏上原来是一列月份、日历挤在左边 132px、右边一大片空着，
-     一年拉成很长一条。改成两列月份、月份名移到日历上方，
-     日历吃满自己那一列。 */
-  #yearGrid{grid-template-columns:repeat(2,1fr);gap:18px 14px}
-  .month{grid-template-columns:1fr;gap:5px}
+     一年拉成很长一条。改成三列——12 个月正好四行，每行一个季度，
+     一屏就能看完一整年。月份名移到日历上方，日历吃满自己那一列。 */
+  #yearGrid{grid-template-columns:repeat(3,1fr);gap:16px 10px}
+  /* align-content:start 不能少：同一排里最高的那个月决定行高，
+     矮的月份会被撑高，多出来的空间默认平摊给它的两行——
+     月份名那行变胖、日历被推下去，一排三个月就对不齐了。 */
+  .month{grid-template-columns:1fr;grid-template-rows:auto auto;
+    align-content:start;gap:4px}
   .m-side{order:-1}
-  .m-head{margin-bottom:0;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
-  .m-head h4{font-size:12px;letter-spacing:.1em}
-  .m-count{display:inline;margin-top:0;font-size:10px}
-  .m-wd,.m-grid{gap:2px}
-  .m-wd span{font-size:8px}
+  /* 天数条数和月份名并排。单独占一行的话，有记录的月份会比
+     同一排的其他月份矮一截，四季那四行就对不齐了。 */
+  .m-head{margin-bottom:0;display:flex;align-items:baseline;gap:5px}
+  .m-head h4{font-size:11px;letter-spacing:.06em;flex:0 0 auto}
+  .m-count{display:inline;margin-top:0;font-size:9px;letter-spacing:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .m-wd,.m-grid{gap:1.5px}
+  .m-wd{margin-bottom:2px}
+  .m-wd span{font-size:7px}
   .wrap{padding-left:18px;padding-right:18px}
 
   /* 窄屏上「编辑/删除」不再和正文抢同一行——它们占掉近三成宽度，
