@@ -242,6 +242,15 @@ function renderMe(list) {
     tile(s.days, "天") +
     tile(s.low, "次不妙") +
     tile(first ? first.slice(5).replace("-", "/") : "—", first ? first.slice(0, 4) + " 年起" : "还没开始");
+
+  dailyUI.renderStats($("#dailyStats"));
+  dailyUI.renderSchedule($("#dailySched"), () => {
+    // 排班表变了，「河」页今天排的项目要跟着变。
+    // 这里只重画「河」页的日课区、不调全局 refresh——refresh 会再调
+    // renderMe -> renderSchedule，跟这条 onChange 线绕在一起没必要，
+    // 干脆照 renderDaily() 之外单独走一条 scheduleSync，不牵扯 refresh。
+    dailyUI.renderToday($("#dailyToday"), () => sync.scheduleSync());
+  });
 }
 
 function tile(v, label) {

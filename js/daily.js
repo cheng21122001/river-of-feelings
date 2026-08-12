@@ -129,3 +129,48 @@ async function commit(box, date, item, onChange) {
   renderToday(box, onChange);
   if (onChange) onChange();
 }
+
+/* ===== 「我」页 ===== */
+
+const DOW = ["一", "二", "三", "四", "五", "六", "日"];
+
+export function renderStats(box) {
+  const s = daily.statsSince(30);
+  const streak = daily.streak();
+  const hours = Math.round(s.minutes / 6) / 10;   // 一位小数
+
+  const dist = daily.ITEM_KEYS
+    .filter(k => s.byItem[k] > 0)
+    .map(k => '<div class="dist-row"><span>' + esc(daily.ITEMS[k].label) + "</span>" +
+              "<b>" + s.byItem[k] + " 分钟</b></div>")
+    .join("");
+
+  box.innerHTML =
+    '<div class="me-row"><span>连续</span><b>' + streak + " 天</b></div>" +
+    '<div class="me-row"><span>近 30 天</span><b>' + s.days + " 天 · " + hours + " 小时</b></div>" +
+    (dist ? '<div class="dist">' + dist + "</div>"
+          : '<div class="me-hint">近 30 天还没有日课记录。</div>');
+}
+
+export function renderSchedule(box, onChange) {
+  const sch = schedule.get();
+
+  box.innerHTML = DOW.map((label, i) => {
+    const dow = i + 1;
+    const on = sch[dow] || [];
+    const chips = daily.ITEM_KEYS.map(k =>
+      '<button class="chip' + (on.includes(k) ? " on" : "") + '" ' +
+      'data-dow="' + dow + '" data-item="' + k + '">' + esc(daily.ITEMS[k].label) + "</button>"
+    ).join("");
+    return '<div class="sched-row"><span class="sched-d">' + label + "</span>" +
+           '<div class="chips">' + chips + "</div></div>";
+  }).join("");
+
+  box.querySelectorAll(".chip").forEach(btn => {
+    btn.onclick = () => {
+      schedule.toggle(Number(btn.dataset.dow), btn.dataset.item);
+      renderSchedule(box, onChange);
+      if (onChange) onChange();
+    };
+  });
+}

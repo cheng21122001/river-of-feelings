@@ -302,3 +302,20 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 
 .sheet-sub{font-size:12px;color:var(--ink-soft);margin:14px 0 6px;letter-spacing:.06em}
 .daily-list{list-style:none;padding:0;margin:0;font-size:14px;line-height:1.9;color:var(--ink-soft)}
+
+/* ===== 「我」页的日课 ===== */
+.me-row{display:flex;justify-content:space-between;align-items:baseline;
+  padding:7px 0;font-size:14px}
+.me-row span{color:var(--ink-soft)}
+.me-hint{font-size:13px;color:var(--ink-faint);padding:6px 0}
+.dist{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.dist-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
+.dist-row span{color:var(--ink-soft)}
+
+.sched{display:flex;flex-direction:column;gap:8px}
+.sched-row{display:flex;align-items:center;gap:10px}
+.sched-d{width:16px;flex:none;font-size:13px;color:var(--ink-soft);text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--ink-faint);
+  border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.chip.on{color:var(--ink);border-color:var(--card-b);background:var(--card)}
