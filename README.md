@@ -32,7 +32,11 @@ js/app.js               启动、路由、各页装配
 js/config.js            Supabase URL 与 anon key（公开值，靠 RLS 保护）
 js/cloud.js             登录、拉取、上传
 js/sync.js              何时同步、怎么合并
+js/daily-store.js       日课记录：IndexedDB daily store
+js/schedule.js          排班表（存 localStorage，不同步）
+js/daily.js             日课界面：河页打卡、我页统计与排班表
 js/vendor/supabase.js   Supabase 客户端（本地放置，CDN 版离线时用不了）
+docs/daily_logs.sql     日课表的建表语句与行级权限
 sw.js                   离线缓存
 tools/make-icons.mjs    生成图标（node tools/make-icons.mjs）
 artifact.html           旧版单文件存档，不再维护
@@ -47,6 +51,8 @@ artifact.html           旧版单文件存档，不再维护
 
 数据库那张表的建表语句和行级权限策略见 `docs/`（或 Supabase 项目里的 SQL Editor 历史）。**行级权限是安全的关键**：anon key 是公开值，谁都能拿到，但策略限定「只能读写 `auth.uid()` 等于自己的行」，所以拿到 key 也读不到别人的记录。
 
+心情和日课是两条独立的流水线，合并规则完全相同。换账号时两套数据必须一起清空重拉——漏掉任何一套都会让上一个账号的记录残留在新账号里。
+
 ## 改完之后
 
 **改了任何静态文件，必须把 `sw.js` 顶部的 `VERSION` 加一**，否则用户的浏览器会一直用缓存里的旧版本，你的改动不会生效。
@@ -58,3 +64,14 @@ artifact.html           旧版单文件存档，不再维护
 ```
 
 和旧版单文件版本完全一致。
+
+日课记录：
+
+```js
+{ id, date: "YYYY-MM-DD", ts, item: "vocab"|"reading"|"writing"|"spanish"|"fitness",
+  editedTs?, deleted?, dirty? }
+```
+
+一条记录只说明「这一天这个项目做了」。没有时长、没有备注——刻意的，不把一天折算成数字。
+
+排班表存在 `localStorage` 的 `river_daily_schedule`，**不同步**——一份 7×5 的小配置，换设备重填比加一条同步流水线便宜。
