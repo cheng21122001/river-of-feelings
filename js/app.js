@@ -406,7 +406,19 @@ function registerSW() {
     location.reload();
   });
 
-  const go = () => navigator.serviceWorker.register("sw.js").catch(() => {});
+  // updateViaCache:"none" 是关键：GitHub Pages 给 sw.js 发 max-age=600，
+  // 默认浏览器查更新时会命中这份 HTTP 缓存，拿到的还是旧 sw.js，
+  // 于是判定"没有新版本"，自动更新那一整套根本不会被触发。
+  // 加上它之后，查更新永远走网络。
+  const go = () => navigator.serviceWorker
+    .register("sw.js", { updateViaCache: "none" })
+    .then(reg => {
+      // 回到前台时主动查一次。浏览器自己可能隔很久才想起来看一眼。
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") reg.update().catch(() => {});
+      });
+    })
+    .catch(() => {});
   // boot() 里有 await，跑到这里时 load 多半已经过去了——那就直接注册
   if (document.readyState === "complete") go();
   else window.addEventListener("load", go, { once: true });
