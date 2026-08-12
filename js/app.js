@@ -246,10 +246,12 @@ function renderMe(list) {
   dailyUI.renderStats($("#dailyStats"));
   dailyUI.renderSchedule($("#dailySched"), () => {
     // 排班表变了，「河」页今天排的项目要跟着变。
-    // 这里只重画「河」页的日课区、不调全局 refresh——refresh 会再调
-    // renderMe -> renderSchedule，跟这条 onChange 线绕在一起没必要，
-    // 干脆照 renderDaily() 之外单独走一条 scheduleSync，不牵扯 refresh。
-    dailyUI.renderToday($("#dailyToday"), () => sync.scheduleSync());
+    // 接的是全局 refresh，跟 renderDaily() 保持一致——renderSchedule/renderToday
+    // 纯渲染时都不会主动调 onChange，只有用户点击才触发一次，不会递归。
+    // 之前接的是 sync.scheduleSync()，会导致排班表编辑后「河」页打卡/撤销
+    // 不再触发全局刷新，直到下一次 refresh() 才恢复；未登录时 scheduleSync()
+    // 直接空转，等于完全没有自动恢复路径。改回 refresh() 修复这个降级。
+    dailyUI.renderToday($("#dailyToday"), () => refresh());
   });
 }
 
