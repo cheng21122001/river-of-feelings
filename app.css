@@ -318,9 +318,11 @@ button.primary:active,button.ghost:active,.mood:active,.act:active,.em:active,
 .daily-list{list-style:none;padding:0;margin:0;font-size:14px;line-height:1.9;color:var(--ink-soft)}
 
 /* ===== 「我」页的日课 ===== */
-/* 「这段路」只有一行，用不着「这条河」那个两列网格——
-   套上去右半边会空出一块底色。这里是单独的一块。 */
-.daily-stats{border:1px solid var(--line);border-radius:10px;padding:18px 16px}
+/* 只有一行，用不着「这条河」那个两列网格——
+   套上去右半边会空出一块底色。这里是单独的一块。
+   标题已删，margin-top 补上原来 .section-h 的 44px。 */
+.daily-stats{border:1px solid var(--line);border-radius:10px;padding:18px 16px;
+  margin-top:44px}
 .daily-stats .me-row{padding:0}
 .daily-stats b{font-family:var(--font-mono);font-size:28px;font-weight:400;
   line-height:1;font-variant-numeric:tabular-nums}
